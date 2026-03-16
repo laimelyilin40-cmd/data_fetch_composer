@@ -1,0 +1,5 @@
+[run_20251229_092411_7aee] start
+prepared_samples=data\outputs\prepared\prep_808dc55818616f05\prepared_samples.parquet rows=105180 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.1, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 8, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0}
+eval_overrides={'wf_folds': 6}
+FAILED: Transformer 需要 torch。請先安裝 GPU 版 torch。

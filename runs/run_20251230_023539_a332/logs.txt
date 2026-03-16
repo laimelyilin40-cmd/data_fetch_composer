@@ -1,0 +1,51 @@
+[run_20251230_023539_a332] start
+prepared_samples=data\outputs\prepared\prep_808dc55818616f05\prepared_samples.parquet rows=105180 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.1, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 8, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+fold 0 epoch 1/8: train_loss=0.008509 val_loss=0.000395
+fold 0 epoch 2/8: train_loss=0.002570 val_loss=0.000738
+fold 0 epoch 3/8: train_loss=0.001705 val_loss=0.000692
+fold 0 epoch 4/8: train_loss=0.001212 val_loss=0.000251
+fold 0 epoch 5/8: train_loss=0.000937 val_loss=0.000157
+fold 0 epoch 6/8: train_loss=0.000799 val_loss=0.000041
+fold 0 epoch 7/8: train_loss=0.000702 val_loss=0.000034
+fold 0 epoch 8/8: train_loss=0.000647 val_loss=0.000057
+fold 0: {'rankic_mean': -0.0010497489730716555, 'spread_mean': -6.87672018146189e-05, 'ls_mean': -6.87672018146189e-05, 'lo_mean': -5.011774766053611e-05, 'lo_corr_market': 0.8450949062485976, 'turnover_top1': 0.5957543939739786}
+fold 1 epoch 1/8: train_loss=0.006237 val_loss=0.000403
+fold 1 epoch 2/8: train_loss=0.001526 val_loss=0.000089
+fold 1 epoch 3/8: train_loss=0.000962 val_loss=0.000042
+fold 1 epoch 4/8: train_loss=0.000722 val_loss=0.000052
+fold 1 epoch 5/8: train_loss=0.000601 val_loss=0.000022
+fold 1 epoch 6/8: train_loss=0.000522 val_loss=0.000026
+fold 1 epoch 7/8: train_loss=0.000472 val_loss=0.000015
+fold 1 epoch 8/8: train_loss=0.000424 val_loss=0.000022
+fold 1: {'rankic_mean': 0.007759014148790507, 'spread_mean': -3.0866651972396324e-05, 'ls_mean': -3.0866651972396324e-05, 'lo_mean': 0.00010478168713023608, 'lo_corr_market': 0.8630428176917831, 'turnover_top1': 0.5464505820588906}
+fold 2 epoch 1/8: train_loss=0.003653 val_loss=0.000151
+fold 2 epoch 2/8: train_loss=0.000877 val_loss=0.000038
+fold 2 epoch 3/8: train_loss=0.000574 val_loss=0.000033
+fold 2 epoch 4/8: train_loss=0.000459 val_loss=0.000020
+fold 2 epoch 5/8: train_loss=0.000393 val_loss=0.000017
+fold 2 epoch 6/8: train_loss=0.000351 val_loss=0.000018
+fold 2 epoch 7/8: train_loss=0.000312 val_loss=0.000015
+fold 2 epoch 8/8: train_loss=0.000288 val_loss=0.000015
+fold 2: {'rankic_mean': 0.0034230944774075764, 'spread_mean': -0.00016917467852012758, 'ls_mean': -0.00016917467852012758, 'lo_mean': 0.00011089399572805377, 'lo_corr_market': 0.7808467748675104, 'turnover_top1': 0.5722437799589135}
+fold 3 epoch 1/8: train_loss=0.004113 val_loss=0.000098
+fold 3 epoch 2/8: train_loss=0.000781 val_loss=0.000030
+fold 3 epoch 3/8: train_loss=0.000504 val_loss=0.000032
+fold 3 epoch 4/8: train_loss=0.000390 val_loss=0.000022
+fold 3 epoch 5/8: train_loss=0.000328 val_loss=0.000023
+fold 3 epoch 6/8: train_loss=0.000284 val_loss=0.000017
+fold 3 epoch 7/8: train_loss=0.000251 val_loss=0.000013
+fold 3 epoch 8/8: train_loss=0.000225 val_loss=0.000021
+fold 3: {'rankic_mean': 0.013738019169329074, 'spread_mean': 5.199557110864975e-06, 'ls_mean': 5.199557110864975e-06, 'lo_mean': 0.00016261533678977338, 'lo_corr_market': 0.8491940144923311, 'turnover_top1': 0.5083314311800958}
+fold 4 epoch 1/8: train_loss=0.004170 val_loss=0.000170
+fold 4 epoch 2/8: train_loss=0.000650 val_loss=0.000027
+fold 4 epoch 3/8: train_loss=0.000445 val_loss=0.000018
+fold 4 epoch 4/8: train_loss=0.000362 val_loss=0.000020
+fold 4 epoch 5/8: train_loss=0.000310 val_loss=0.000020
+fold 4 epoch 6/8: train_loss=0.000271 val_loss=0.000015
+fold 4 epoch 7/8: train_loss=0.000242 val_loss=0.000023
+fold 4 epoch 8/8: train_loss=0.000220 val_loss=0.000024
+fold 4: {'rankic_mean': 0.008711516533637399, 'spread_mean': -3.5893962883020784e-05, 'ls_mean': -3.5893962883020784e-05, 'lo_mean': 6.19216470327985e-08, 'lo_corr_market': 0.8962164841404354, 'turnover_top1': 0.4550638686131387}
+DONE success

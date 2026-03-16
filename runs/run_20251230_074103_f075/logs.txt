@@ -1,0 +1,10 @@
+[run_20251230_074103_f075] start
+prepared_samples=data\outputs\prepared\prep_a20a8061ad54d46b\prepared_samples.parquet rows=315495 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.2, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 40, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'rank_pairwise'}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+loss_type=rank_pairwise
+fold 0 epoch 1/40: train_loss=0.693545 val_loss=0.692868
+fold 0 epoch 2/40: train_loss=0.692868 val_loss=0.692657
+STOP requested (stop.flag). Exiting...
+FAILED: cancelled by user

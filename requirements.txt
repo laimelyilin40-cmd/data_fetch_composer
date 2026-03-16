@@ -1,0 +1,30 @@
+# Binance Vision 資料統整系統依賴
+
+# 核心資料處理
+polars>=0.20.0
+pyarrow>=14.0.0
+pandas>=2.0.0
+
+# 網路請求
+requests>=2.31.0
+aiohttp>=3.9.0
+
+# 資料庫
+sqlalchemy>=2.0.0
+
+# UI
+streamlit>=1.28.0
+plotly>=5.18.0
+
+# 配置與序列化
+pyyaml>=6.0
+pydantic>=2.5.0
+
+# 工具
+tqdm>=4.66.0
+python-dateutil>=2.8.0
+
+# 測試
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+

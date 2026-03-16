@@ -1,0 +1,10 @@
+[run_72084ce6c5] start
+assembled rows=9120 cols=35
+features rows=1518 cols=8
+samples rows=1518 cols=10
+fold 0: {'rankic_mean': 0.06349206349206349, 'spread_mean': 0.0009243292561898668, 'ls_mean': 0.0009243292561898668, 'lo_mean': -6.171371848261705e-05, 'lo_corr_market': 0.9674814200660365, 'turnover_top1': 0.072}
+fold 1: {'rankic_mean': 0.03174603174603172, 'spread_mean': 0.0001488368722883348, 'ls_mean': 0.0001488368722883348, 'lo_mean': 0.00047874287768955584, 'lo_corr_market': 0.9713613046475852, 'turnover_top1': 0.176}
+fold 2: {'rankic_mean': 0.07936507936507935, 'spread_mean': 0.00033005637843599143, 'ls_mean': 0.00033005637843599143, 'lo_mean': -0.001521957911136178, 'lo_corr_market': 0.9764716347586205, 'turnover_top1': 0.208}
+fold 3: {'rankic_mean': 0.0476190476190476, 'spread_mean': -9.74662910617151e-05, 'ls_mean': -9.74662910617151e-05, 'lo_mean': -0.0004170413326489103, 'lo_corr_market': 0.9600158320238469, 'turnover_top1': 0.208}
+fold 4: {'rankic_mean': 0.023255813953488354, 'spread_mean': -0.00016330149439618637, 'ls_mean': -0.00016330149439618637, 'lo_mean': 0.0007353931240839275, 'lo_corr_market': 0.9479728368655218, 'turnover_top1': 0.2265625}
+DONE success

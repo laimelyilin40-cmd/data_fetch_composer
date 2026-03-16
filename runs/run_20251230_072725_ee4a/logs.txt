@@ -1,0 +1,112 @@
+[run_20251230_072725_ee4a] start
+prepared_samples=data\outputs\prepared\prep_a20a8061ad54d46b\prepared_samples.parquet rows=315495 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.1, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 20, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'huber'}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+loss_type=huber
+fold 0 epoch 1/20: train_loss=0.005416 val_loss=0.000095
+fold 0 epoch 2/20: train_loss=0.001236 val_loss=0.000034
+fold 0 epoch 3/20: train_loss=0.000723 val_loss=0.000044
+fold 0 epoch 4/20: train_loss=0.000569 val_loss=0.000030
+fold 0 epoch 5/20: train_loss=0.000489 val_loss=0.000025
+fold 0 epoch 6/20: train_loss=0.000436 val_loss=0.000025
+fold 0 epoch 7/20: train_loss=0.000394 val_loss=0.000025
+fold 0 epoch 8/20: train_loss=0.000361 val_loss=0.000023
+fold 0 epoch 9/20: train_loss=0.000337 val_loss=0.000022
+fold 0 epoch 10/20: train_loss=0.000318 val_loss=0.000023
+fold 0 epoch 11/20: train_loss=0.000294 val_loss=0.000022
+fold 0 epoch 12/20: train_loss=0.000277 val_loss=0.000022
+fold 0 epoch 13/20: train_loss=0.000264 val_loss=0.000022
+fold 0 epoch 14/20: train_loss=0.000250 val_loss=0.000025
+fold 0 epoch 15/20: train_loss=0.000240 val_loss=0.000024
+fold 0 epoch 16/20: train_loss=0.000228 val_loss=0.000023
+fold 0 epoch 17/20: train_loss=0.000219 val_loss=0.000025
+fold 0 epoch 18/20: train_loss=0.000208 val_loss=0.000022
+fold 0 epoch 19/20: train_loss=0.000204 val_loss=0.000022
+fold 0 epoch 20/20: train_loss=0.000199 val_loss=0.000020
+fold 0: {'rankic_mean': -0.0239758073719046, 'spread_mean': -0.00021196856310825112, 'ls_mean': -0.00021196856310825112, 'lo_mean': -0.0001262933158623996, 'lo_corr_market': 0.764833291554385, 'turnover_top1': 0.6430405752439651}
+fold 1 epoch 1/20: train_loss=nan val_loss=nan
+fold 1 epoch 2/20: train_loss=nan val_loss=nan
+fold 1 epoch 3/20: train_loss=nan val_loss=nan
+fold 1 epoch 4/20: train_loss=nan val_loss=nan
+fold 1 epoch 5/20: train_loss=nan val_loss=nan
+fold 1 epoch 6/20: train_loss=nan val_loss=nan
+fold 1 epoch 7/20: train_loss=nan val_loss=nan
+fold 1 epoch 8/20: train_loss=nan val_loss=nan
+fold 1 epoch 9/20: train_loss=nan val_loss=nan
+fold 1 epoch 10/20: train_loss=nan val_loss=nan
+fold 1 epoch 11/20: train_loss=nan val_loss=nan
+fold 1 epoch 12/20: train_loss=nan val_loss=nan
+fold 1 epoch 13/20: train_loss=nan val_loss=nan
+fold 1 epoch 14/20: train_loss=nan val_loss=nan
+fold 1 epoch 15/20: train_loss=nan val_loss=nan
+fold 1 epoch 16/20: train_loss=nan val_loss=nan
+fold 1 epoch 17/20: train_loss=nan val_loss=nan
+fold 1 epoch 18/20: train_loss=nan val_loss=nan
+fold 1 epoch 19/20: train_loss=nan val_loss=nan
+fold 1 epoch 20/20: train_loss=nan val_loss=nan
+fold 1: {'rankic_mean': 0.008256304918406938, 'spread_mean': 0.0, 'ls_mean': 0.0, 'lo_mean': -0.00019772808486950456, 'lo_corr_market': 0.888854055734347, 'turnover_top1': 0.0}
+fold 2 epoch 1/20: train_loss=nan val_loss=nan
+fold 2 epoch 2/20: train_loss=nan val_loss=nan
+fold 2 epoch 3/20: train_loss=nan val_loss=nan
+fold 2 epoch 4/20: train_loss=nan val_loss=nan
+fold 2 epoch 5/20: train_loss=nan val_loss=nan
+fold 2 epoch 6/20: train_loss=nan val_loss=nan
+fold 2 epoch 7/20: train_loss=nan val_loss=nan
+fold 2 epoch 8/20: train_loss=nan val_loss=nan
+fold 2 epoch 9/20: train_loss=nan val_loss=nan
+fold 2 epoch 10/20: train_loss=nan val_loss=nan
+fold 2 epoch 11/20: train_loss=nan val_loss=nan
+fold 2 epoch 12/20: train_loss=nan val_loss=nan
+fold 2 epoch 13/20: train_loss=nan val_loss=nan
+fold 2 epoch 14/20: train_loss=nan val_loss=nan
+fold 2 epoch 15/20: train_loss=nan val_loss=nan
+fold 2 epoch 16/20: train_loss=nan val_loss=nan
+fold 2 epoch 17/20: train_loss=nan val_loss=nan
+fold 2 epoch 18/20: train_loss=nan val_loss=nan
+fold 2 epoch 19/20: train_loss=nan val_loss=nan
+fold 2 epoch 20/20: train_loss=nan val_loss=nan
+fold 2: {'rankic_mean': 0.012681159420289854, 'spread_mean': 0.0, 'ls_mean': 0.0, 'lo_mean': 7.1218736086224705e-06, 'lo_corr_market': 0.875415955250589, 'turnover_top1': 0.0}
+fold 3 epoch 1/20: train_loss=0.009146 val_loss=nan
+fold 3 epoch 2/20: train_loss=nan val_loss=nan
+fold 3 epoch 3/20: train_loss=nan val_loss=nan
+fold 3 epoch 4/20: train_loss=nan val_loss=nan
+fold 3 epoch 5/20: train_loss=nan val_loss=nan
+fold 3 epoch 6/20: train_loss=nan val_loss=nan
+fold 3 epoch 7/20: train_loss=nan val_loss=nan
+fold 3 epoch 8/20: train_loss=nan val_loss=nan
+fold 3 epoch 9/20: train_loss=nan val_loss=nan
+fold 3 epoch 10/20: train_loss=nan val_loss=nan
+fold 3 epoch 11/20: train_loss=nan val_loss=nan
+fold 3 epoch 12/20: train_loss=nan val_loss=nan
+fold 3 epoch 13/20: train_loss=nan val_loss=nan
+fold 3 epoch 14/20: train_loss=nan val_loss=nan
+fold 3 epoch 15/20: train_loss=nan val_loss=nan
+fold 3 epoch 16/20: train_loss=nan val_loss=nan
+fold 3 epoch 17/20: train_loss=nan val_loss=nan
+fold 3 epoch 18/20: train_loss=nan val_loss=nan
+fold 3 epoch 19/20: train_loss=nan val_loss=nan
+fold 3 epoch 20/20: train_loss=nan val_loss=nan
+fold 3: {'rankic_mean': 0.004105329225151204, 'spread_mean': 0.0, 'ls_mean': 0.0, 'lo_mean': 9.471524550557727e-05, 'lo_corr_market': 0.8733794211837073, 'turnover_top1': 0.0}
+fold 4 epoch 1/20: train_loss=0.007583 val_loss=nan
+fold 4 epoch 2/20: train_loss=nan val_loss=nan
+fold 4 epoch 3/20: train_loss=nan val_loss=nan
+fold 4 epoch 4/20: train_loss=nan val_loss=nan
+fold 4 epoch 5/20: train_loss=nan val_loss=nan
+fold 4 epoch 6/20: train_loss=nan val_loss=nan
+fold 4 epoch 7/20: train_loss=nan val_loss=nan
+fold 4 epoch 8/20: train_loss=nan val_loss=nan
+fold 4 epoch 9/20: train_loss=nan val_loss=nan
+fold 4 epoch 10/20: train_loss=nan val_loss=nan
+fold 4 epoch 11/20: train_loss=nan val_loss=nan
+fold 4 epoch 12/20: train_loss=nan val_loss=nan
+fold 4 epoch 13/20: train_loss=nan val_loss=nan
+fold 4 epoch 14/20: train_loss=nan val_loss=nan
+fold 4 epoch 15/20: train_loss=nan val_loss=nan
+fold 4 epoch 16/20: train_loss=nan val_loss=nan
+fold 4 epoch 17/20: train_loss=nan val_loss=nan
+fold 4 epoch 18/20: train_loss=nan val_loss=nan
+fold 4 epoch 19/20: train_loss=nan val_loss=nan
+fold 4 epoch 20/20: train_loss=nan val_loss=nan
+fold 4: {'rankic_mean': 0.010105503279155973, 'spread_mean': 0.0, 'ls_mean': 0.0, 'lo_mean': 0.00011539735804282852, 'lo_corr_market': 0.8691072485256729, 'turnover_top1': 0.0}
+DONE success

@@ -1,0 +1,42 @@
+name: klines_plus_oi
+description: "組合 klines OHLCV 與 metrics 的 open_interest"
+
+symbols:
+  - BTCUSDT
+  - ETHUSDT
+
+time_range:
+  start: "2023-01-01"
+  end: "2023-12-31"
+
+inputs:
+  - dataset_type: klines
+    interval: "1h"
+    columns:
+      - open_time
+      - open
+      - high
+      - low
+      - close
+      - volume
+    resample: false
+  
+  - dataset_type: metrics
+    interval: null
+    columns:
+      - open_time
+      - open_interest
+    resample: false
+
+join_policy:
+  key: open_time
+  missing: drop
+
+output_format: long
+
+output_store:
+  format: parquet
+  partition_by:
+    - symbol
+    - date
+

@@ -1,0 +1,5 @@
+[run_20251230_111531_cfe1] start
+prepared_samples=data\outputs\prepared\prep_a20a8061ad54d46b\prepared_samples.parquet rows=315495 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.1, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 16, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'rank_pairwise', 'amp': True, 'amp_dtype': 'bf16', 'tf32': True, 'num_workers': 16, 'pin_memory': True, 'persistent_workers': True, 'prefetch_factor': 2, 'group_batch_size': 32}
+eval_overrides={'wf_folds': 6}
+FAILED: prepared_samples 仍含非有限值（請重新 Prepare/強制重建）。{'y_nonfinite': 0.0, 'real_r_nonfinite': 0.0, 'X_nonfinite': 5.282703899163748e-07}

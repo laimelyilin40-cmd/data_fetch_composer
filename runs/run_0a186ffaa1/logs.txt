@@ -1,0 +1,3 @@
+[run_0a186ffaa1] start
+prepared_samples=data\outputs\prepared\prep_9fdbdbf0fb44dfba\prepared_samples.parquet rows=315548 cols=10
+FAILED: 'ModelSpec' object has no attribute 'type'

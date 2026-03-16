@@ -1,0 +1,48 @@
+C:\秖てユ╰参\core\runner.py:275: FutureWarning: `torch.cuda.amp.GradScaler(args...)` is deprecated. Please use `torch.amp.GradScaler('cuda', args...)` instead.
+  scaler = torch.cuda.amp.GradScaler(enabled=use_fp16)
+C:\秖てユ╰参\core\models_transformer.py:75: UserWarning: enable_nested_tensor is True, but self.use_nested_tensor is False because encoder_layer.norm_first was True
+  self.encoder = nn.TransformerEncoder(enc_layer, num_layers=int(n_layers))
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\spawn.py", line 122, in spawn_main
+    exitcode = _main(fd, parent_sentinel)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\spawn.py", line 132, in _main
+    self = reduction.pickle.load(from_parent)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+EOFError: Ran out of input
+C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\site-packages\torch\utils\data\dataloader.py:433: UserWarning: Got pickle error when attempting to start a worker Process. This might be because the worker Process arguments are not picklable. Python 3.14+ changed the multiprocessing start method in non-Mac POSIX platforms to 'forkserver', which requires the worker Process arguments to be picklable. You can also try multiprocessing.set_start_method('fork').
+  return _MultiProcessingDataLoaderIter(self)
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\秖てユ╰参\core\worker_run.py", line 70, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\秖てユ╰参\core\worker_run.py", line 52, in main
+    run_experiment(run_id=run_id, run_spec=rs, registry=reg, progress_cb=None, prepared_samples_path=prepared)
+  File "C:\秖てユ╰参\core\runner.py", line 350, in run_experiment
+    for batch in dl_train:
+                 ^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\site-packages\torch\utils\data\dataloader.py", line 495, in __iter__
+    self._iterator = self._get_iterator()
+                     ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\site-packages\torch\utils\data\dataloader.py", line 433, in _get_iterator
+    return _MultiProcessingDataLoaderIter(self)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\site-packages\torch\utils\data\dataloader.py", line 1192, in __init__
+    w.start()
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\process.py", line 121, in start
+    self._popen = self._Popen(self)
+                  ^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\context.py", line 224, in _Popen
+    return _default_context.get_context().Process._Popen(process_obj)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\context.py", line 337, in _Popen
+    return Popen(process_obj)
+           ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\popen_spawn_win32.py", line 95, in __init__
+    reduction.dump(process_obj, to_child)
+  File "C:\Users\admin\miniconda3_qtsys\envs\qtsys\Lib\multiprocessing\reduction.py", line 60, in dump
+    ForkingPickler(file, protocol).dump(obj)
+AttributeError: Can't get local object 'make_timestamp_group_collate_fn.<locals>._collate'

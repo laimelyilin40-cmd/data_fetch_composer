@@ -1,0 +1,7 @@
+[run_20251230_082527_4074] start
+prepared_samples=data\outputs\prepared\prep_78e00bbe02866b97\prepared_samples.parquet rows=315495 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.1, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 100, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'rank_pairwise', 'amp': True, 'amp_dtype': 'bf16', 'tf32': True, 'num_workers': 8, 'pin_memory': True, 'persistent_workers': True, 'prefetch_factor': 2, 'group_batch_size': 32}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+loss_type=rank_pairwise
+FAILED: Can't get local object 'make_timestamp_group_collate_fn.<locals>._collate'

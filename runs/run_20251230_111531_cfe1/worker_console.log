@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\量化交易系統\core\worker_run.py", line 70, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\量化交易系統\core\worker_run.py", line 52, in main
+    run_experiment(run_id=run_id, run_spec=rs, registry=reg, progress_cb=None, prepared_samples_path=prepared)
+  File "C:\量化交易系統\core\runner.py", line 235, in run_experiment
+    raise ValueError(f"prepared_samples 仍含非有限值（請重新 Prepare/強制重建）。{bad}")
+ValueError: prepared_samples 仍含非有限值（請重新 Prepare/強制重建）。{'y_nonfinite': 0.0, 'real_r_nonfinite': 0.0, 'X_nonfinite': 5.282703899163748e-07}

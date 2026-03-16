@@ -1,0 +1,85 @@
+{
+  "run_id": "run_20251230_023539_a332",
+  "prepared_samples_path": "data\\outputs\\prepared\\prep_808dc55818616f05\\prepared_samples.parquet",
+  "samples_rows": 105180,
+  "samples_cols": 10,
+  "feature_columns": [
+    "ret_60m",
+    "ret_240m",
+    "rv_60m",
+    "z_ret_60m",
+    "z_ret_240m",
+    "z_rv_60m"
+  ],
+  "dataset": {
+    "dataset_id": "ds_89893827d79456be",
+    "name": "dataset_1",
+    "assembled_parquet_path": "data\\outputs\\datasets\\dataset_1\\dataset_1.parquet",
+    "universe": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "BNB"
+    ],
+    "base_freq": "1m",
+    "decision_minutes": 60,
+    "horizon_minutes": 60,
+    "lookback_bars": 512,
+    "label_type": "relative_return_v0",
+    "feature_groups": {
+      "g1": true,
+      "g2": false,
+      "g3": true
+    },
+    "normalization": {
+      "enabled": true,
+      "window_days": 3
+    },
+    "ffill": {
+      "enabled": true,
+      "max_consecutive": 180
+    },
+    "notes": ""
+  },
+  "model": {
+    "model_id": "m_7514fb614974738b",
+    "name": "transformer_seq_v1",
+    "model_type": "transformer_seq",
+    "params": {
+      "seq_len": 64,
+      "d_model": 128,
+      "n_heads": 4,
+      "n_layers": 2,
+      "dropout": 0.1,
+      "pool": "last",
+      "lr": 0.0002,
+      "batch_size": 2048,
+      "epochs": 8,
+      "weight_decay": 0.01,
+      "grad_clip": 1.0,
+      "huber_delta": 1.0
+    },
+    "overrides": {
+      "seq_len": 64,
+      "d_model": 128,
+      "n_layers": 2,
+      "n_heads": 4,
+      "dropout": 0.1,
+      "pool": "last",
+      "lr": 0.0002,
+      "batch_size": 2048,
+      "epochs": 8
+    }
+  },
+  "eval": {
+    "eval_id": "e_77b5c6f07df3a08a",
+    "name": "eval_v0",
+    "wf_folds": 6,
+    "slices": {
+      "vol_regime": true
+    },
+    "overrides": {
+      "wf_folds": 6
+    }
+  }
+}

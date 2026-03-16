@@ -1,0 +1,82 @@
+run_spec:
+  name: 20251229_172411_dataset_1_H60_D60
+  created_at: '2025-12-29T09:24:11.672947'
+  dataset_id: ds_89893827d79456be
+  model_id: m_7514fb614974738b
+  eval_id: e_77b5c6f07df3a08a
+  notes: ''
+  tags:
+  - v0
+  - prepared
+  model_overrides:
+    seq_len: 64
+    d_model: 128
+    n_layers: 2
+    n_heads: 4
+    dropout: 0.1
+    pool: last
+    lr: 0.0002
+    batch_size: 2048
+    epochs: 8
+  eval_overrides:
+    wf_folds: 6
+dataset:
+  name: dataset_1
+  created_at: '2025-12-29T09:24:09.159328'
+  universe:
+  - BTC
+  - ETH
+  - SOL
+  - BNB
+  start: '2000-01-01'
+  end: '2100-01-01'
+  base_freq: 1m
+  decision_minutes: 60
+  horizon_minutes: 60
+  lookback_bars: 512
+  label_type: relative_return_v0
+  feature_groups:
+    g1: true
+    g2: false
+    g3: true
+  normalization:
+    enabled: true
+    window_days: 3
+  ffill:
+    enabled: true
+    max_consecutive: 180
+  assembled_parquet_path: data\outputs\datasets\dataset_1\dataset_1.parquet
+  notes: ''
+model:
+  name: transformer_seq_v1
+  created_at: '2025-12-29T09:18:31.426213'
+  model_type: transformer_seq
+  params:
+    seq_len: 64
+    d_model: 128
+    n_heads: 4
+    n_layers: 2
+    dropout: 0.1
+    pool: last
+    lr: 0.0002
+    batch_size: 2048
+    epochs: 8
+    weight_decay: 0.01
+    grad_clip: 1.0
+    huber_delta: 1.0
+  notes: v1 Transformer（temporal）：每資產用 seq windows 預測 y；需 torch（建議 GPU）。
+eval:
+  name: eval_v0
+  created_at: '2025-12-24T01:05:33.207012'
+  wf_folds: 6
+  metrics:
+    rankic: true
+    spread: true
+    ls: true
+    lo: true
+    lo_corr_market: true
+    turnover: true
+  slices:
+    vol_regime: true
+  seed: 42
+  notes: v0：K=6 walk-forward + vol_regime slice

@@ -1,0 +1,113 @@
+{
+  "type": "transformer_seq",
+  "feature_names": [
+    "ret_60m",
+    "ret_240m",
+    "rv_60m",
+    "z_ret_60m",
+    "z_ret_240m",
+    "z_rv_60m"
+  ],
+  "fold_models": [
+    {
+      "fold_id": 0,
+      "type": "transformer_seq",
+      "model_path": "runs\\run_20251230_052104_0f22\\models\\fold_0.pt",
+      "seq_len": 64,
+      "params": {
+        "seq_len": 64,
+        "d_model": 128,
+        "n_heads": 4,
+        "n_layers": 2,
+        "dropout": 0.2,
+        "pool": "last",
+        "lr": 0.0002,
+        "batch_size": 2048,
+        "epochs": 200,
+        "weight_decay": 0.01,
+        "grad_clip": 1.0,
+        "huber_delta": 1.0
+      }
+    },
+    {
+      "fold_id": 1,
+      "type": "transformer_seq",
+      "model_path": "runs\\run_20251230_052104_0f22\\models\\fold_1.pt",
+      "seq_len": 64,
+      "params": {
+        "seq_len": 64,
+        "d_model": 128,
+        "n_heads": 4,
+        "n_layers": 2,
+        "dropout": 0.2,
+        "pool": "last",
+        "lr": 0.0002,
+        "batch_size": 2048,
+        "epochs": 200,
+        "weight_decay": 0.01,
+        "grad_clip": 1.0,
+        "huber_delta": 1.0
+      }
+    },
+    {
+      "fold_id": 2,
+      "type": "transformer_seq",
+      "model_path": "runs\\run_20251230_052104_0f22\\models\\fold_2.pt",
+      "seq_len": 64,
+      "params": {
+        "seq_len": 64,
+        "d_model": 128,
+        "n_heads": 4,
+        "n_layers": 2,
+        "dropout": 0.2,
+        "pool": "last",
+        "lr": 0.0002,
+        "batch_size": 2048,
+        "epochs": 200,
+        "weight_decay": 0.01,
+        "grad_clip": 1.0,
+        "huber_delta": 1.0
+      }
+    },
+    {
+      "fold_id": 3,
+      "type": "transformer_seq",
+      "model_path": "runs\\run_20251230_052104_0f22\\models\\fold_3.pt",
+      "seq_len": 64,
+      "params": {
+        "seq_len": 64,
+        "d_model": 128,
+        "n_heads": 4,
+        "n_layers": 2,
+        "dropout": 0.2,
+        "pool": "last",
+        "lr": 0.0002,
+        "batch_size": 2048,
+        "epochs": 200,
+        "weight_decay": 0.01,
+        "grad_clip": 1.0,
+        "huber_delta": 1.0
+      }
+    },
+    {
+      "fold_id": 4,
+      "type": "transformer_seq",
+      "model_path": "runs\\run_20251230_052104_0f22\\models\\fold_4.pt",
+      "seq_len": 64,
+      "params": {
+        "seq_len": 64,
+        "d_model": 128,
+        "n_heads": 4,
+        "n_layers": 2,
+        "dropout": 0.2,
+        "pool": "last",
+        "lr": 0.0002,
+        "batch_size": 2048,
+        "epochs": 200,
+        "weight_decay": 0.01,
+        "grad_clip": 1.0,
+        "huber_delta": 1.0
+      }
+    }
+  ]
+}

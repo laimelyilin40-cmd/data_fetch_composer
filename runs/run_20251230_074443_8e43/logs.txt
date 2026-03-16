@@ -1,0 +1,34 @@
+[run_20251230_074443_8e43] start
+prepared_samples=data\outputs\prepared\prep_a20a8061ad54d46b\prepared_samples.parquet rows=315495 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.2, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 100, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'rank_pairwise'}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+loss_type=rank_pairwise
+fold 0 epoch 1/100: train_loss=0.693904 val_loss=0.692453
+fold 0 epoch 2/100: train_loss=0.692856 val_loss=0.692538
+fold 0 epoch 3/100: train_loss=0.692775 val_loss=0.692646
+fold 0 epoch 4/100: train_loss=0.692343 val_loss=0.692901
+fold 0 epoch 5/100: train_loss=0.692471 val_loss=0.692616
+fold 0 epoch 6/100: train_loss=0.692265 val_loss=0.692884
+fold 0 epoch 7/100: train_loss=0.692328 val_loss=0.692910
+fold 0 epoch 8/100: train_loss=0.692363 val_loss=0.692746
+fold 0 epoch 9/100: train_loss=0.692236 val_loss=0.692639
+fold 0 epoch 10/100: train_loss=0.691986 val_loss=0.692735
+fold 0 epoch 11/100: train_loss=0.692007 val_loss=0.692722
+fold 0 epoch 12/100: train_loss=0.691809 val_loss=0.692760
+fold 0 epoch 13/100: train_loss=0.691999 val_loss=0.693095
+fold 0 epoch 14/100: train_loss=0.691934 val_loss=0.692588
+fold 0 epoch 15/100: train_loss=0.691786 val_loss=0.693849
+fold 0 epoch 16/100: train_loss=0.691672 val_loss=0.693194
+fold 0 epoch 17/100: train_loss=0.691579 val_loss=0.693804
+fold 0 epoch 18/100: train_loss=0.691616 val_loss=0.692700
+fold 0 epoch 19/100: train_loss=0.691573 val_loss=0.692759
+fold 0 epoch 20/100: train_loss=0.691477 val_loss=0.692667
+fold 0 epoch 21/100: train_loss=0.691362 val_loss=0.692845
+fold 0 epoch 22/100: train_loss=0.691167 val_loss=0.692714
+fold 0 epoch 23/100: train_loss=0.691354 val_loss=0.692626
+fold 0 epoch 24/100: train_loss=0.691136 val_loss=0.692518
+fold 0 epoch 25/100: train_loss=0.690684 val_loss=0.692748
+fold 0 epoch 26/100: train_loss=0.690876 val_loss=0.693088
+STOP requested (stop.flag). Exiting...
+FAILED: cancelled by user

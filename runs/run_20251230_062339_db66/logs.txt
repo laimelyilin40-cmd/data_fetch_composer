@@ -1,0 +1,87 @@
+[run_20251230_062339_db66] start
+prepared_samples=data\outputs\prepared\prep_a20a8061ad54d46b\prepared_samples.parquet rows=315495 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.1, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 80, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'rank_pairwise'}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+loss_type=rank_pairwise
+fold 0 epoch 1/80: train_loss=0.693414 val_loss=nan
+fold 0 epoch 2/80: train_loss=0.692803 val_loss=nan
+fold 0 epoch 3/80: train_loss=0.692451 val_loss=nan
+fold 0 epoch 4/80: train_loss=0.692370 val_loss=nan
+fold 0 epoch 5/80: train_loss=0.692380 val_loss=nan
+fold 0 epoch 6/80: train_loss=0.692174 val_loss=nan
+fold 0 epoch 7/80: train_loss=0.691993 val_loss=nan
+fold 0 epoch 8/80: train_loss=0.691559 val_loss=nan
+fold 0 epoch 9/80: train_loss=0.691618 val_loss=nan
+fold 0 epoch 10/80: train_loss=0.691506 val_loss=nan
+fold 0 epoch 11/80: train_loss=0.691601 val_loss=nan
+fold 0 epoch 12/80: train_loss=0.691437 val_loss=nan
+fold 0 epoch 13/80: train_loss=0.691135 val_loss=nan
+fold 0 epoch 14/80: train_loss=0.691037 val_loss=nan
+fold 0 epoch 15/80: train_loss=0.690701 val_loss=nan
+fold 0 epoch 16/80: train_loss=0.690517 val_loss=nan
+fold 0 epoch 17/80: train_loss=0.690684 val_loss=nan
+fold 0 epoch 18/80: train_loss=0.690308 val_loss=nan
+fold 0 epoch 19/80: train_loss=0.690364 val_loss=nan
+fold 0 epoch 20/80: train_loss=0.690366 val_loss=nan
+fold 0 epoch 21/80: train_loss=0.690147 val_loss=nan
+fold 0 epoch 22/80: train_loss=0.690136 val_loss=nan
+fold 0 epoch 23/80: train_loss=0.690004 val_loss=nan
+fold 0 epoch 24/80: train_loss=0.689893 val_loss=nan
+fold 0 epoch 25/80: train_loss=0.689647 val_loss=nan
+fold 0 epoch 26/80: train_loss=0.689260 val_loss=nan
+fold 0 epoch 27/80: train_loss=0.689324 val_loss=nan
+fold 0 epoch 28/80: train_loss=0.688927 val_loss=nan
+fold 0 epoch 29/80: train_loss=0.689075 val_loss=nan
+fold 0 epoch 30/80: train_loss=0.689025 val_loss=nan
+fold 0 epoch 31/80: train_loss=0.688932 val_loss=nan
+fold 0 epoch 32/80: train_loss=0.688924 val_loss=nan
+fold 0 epoch 33/80: train_loss=0.688644 val_loss=nan
+fold 0 epoch 34/80: train_loss=0.688806 val_loss=nan
+fold 0 epoch 35/80: train_loss=0.688330 val_loss=nan
+fold 0 epoch 36/80: train_loss=0.688743 val_loss=nan
+fold 0 epoch 37/80: train_loss=0.688105 val_loss=nan
+fold 0 epoch 38/80: train_loss=0.688029 val_loss=nan
+fold 0 epoch 39/80: train_loss=0.687604 val_loss=nan
+fold 0 epoch 40/80: train_loss=0.687769 val_loss=nan
+fold 0 epoch 41/80: train_loss=0.687692 val_loss=nan
+fold 0 epoch 42/80: train_loss=0.687523 val_loss=nan
+fold 0 epoch 43/80: train_loss=0.687385 val_loss=nan
+fold 0 epoch 44/80: train_loss=0.687391 val_loss=nan
+fold 0 epoch 45/80: train_loss=0.687108 val_loss=nan
+fold 0 epoch 46/80: train_loss=0.687051 val_loss=nan
+fold 0 epoch 47/80: train_loss=0.686845 val_loss=nan
+fold 0 epoch 48/80: train_loss=0.686637 val_loss=nan
+fold 0 epoch 49/80: train_loss=0.687257 val_loss=nan
+fold 0 epoch 50/80: train_loss=0.686713 val_loss=nan
+fold 0 epoch 51/80: train_loss=0.686452 val_loss=nan
+fold 0 epoch 52/80: train_loss=0.686476 val_loss=nan
+fold 0 epoch 53/80: train_loss=0.687133 val_loss=nan
+fold 0 epoch 54/80: train_loss=0.686081 val_loss=nan
+fold 0 epoch 55/80: train_loss=0.685659 val_loss=nan
+fold 0 epoch 56/80: train_loss=0.686160 val_loss=nan
+fold 0 epoch 57/80: train_loss=0.685735 val_loss=nan
+fold 0 epoch 58/80: train_loss=0.685730 val_loss=nan
+fold 0 epoch 59/80: train_loss=0.685722 val_loss=nan
+fold 0 epoch 60/80: train_loss=0.685380 val_loss=nan
+fold 0 epoch 61/80: train_loss=0.685961 val_loss=nan
+fold 0 epoch 62/80: train_loss=0.685602 val_loss=nan
+fold 0 epoch 63/80: train_loss=0.685331 val_loss=nan
+fold 0 epoch 64/80: train_loss=0.685191 val_loss=nan
+fold 0 epoch 65/80: train_loss=0.684764 val_loss=nan
+fold 0 epoch 66/80: train_loss=0.685392 val_loss=nan
+fold 0 epoch 67/80: train_loss=0.684661 val_loss=nan
+fold 0 epoch 68/80: train_loss=0.684060 val_loss=nan
+fold 0 epoch 69/80: train_loss=0.684559 val_loss=nan
+fold 0 epoch 70/80: train_loss=0.684518 val_loss=nan
+fold 0 epoch 71/80: train_loss=0.684109 val_loss=nan
+fold 0 epoch 72/80: train_loss=0.684025 val_loss=nan
+fold 0 epoch 73/80: train_loss=0.683781 val_loss=nan
+fold 0 epoch 74/80: train_loss=0.684036 val_loss=nan
+fold 0 epoch 75/80: train_loss=0.684030 val_loss=nan
+fold 0 epoch 76/80: train_loss=0.683366 val_loss=nan
+fold 0 epoch 77/80: train_loss=0.683378 val_loss=nan
+fold 0 epoch 78/80: train_loss=0.683048 val_loss=nan
+fold 0 epoch 79/80: train_loss=0.682904 val_loss=nan
+fold 0 epoch 80/80: train_loss=0.682957 val_loss=nan
+FAILED: could not create a new DataFrame: height of column 'asset' (5842) does not match height of column 'timestamp' (52578)

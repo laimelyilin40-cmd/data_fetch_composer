@@ -1,0 +1,61 @@
+{
+  "run_id": "run_c1dd623b67",
+  "prepared_samples_path": "data\\outputs\\prepared\\prep_808dc55818616f05\\prepared_samples.parquet",
+  "samples_rows": 105180,
+  "samples_cols": 10,
+  "feature_columns": [
+    "ret_60m",
+    "ret_240m",
+    "rv_60m",
+    "z_ret_60m",
+    "z_ret_240m",
+    "z_rv_60m"
+  ],
+  "dataset": {
+    "dataset_id": "ds_89893827d79456be",
+    "name": "toutouchang",
+    "assembled_parquet_path": "data\\outputs\\datasets\\dataset_1\\dataset_1.parquet",
+    "universe": [
+      "BTC",
+      "ETH",
+      "SOL",
+      "BNB"
+    ],
+    "base_freq": "1m",
+    "decision_minutes": 60,
+    "horizon_minutes": 60,
+    "lookback_bars": 512,
+    "label_type": "relative_return_v0",
+    "feature_groups": {
+      "g1": true,
+      "g2": false,
+      "g3": true
+    },
+    "normalization": {
+      "enabled": true,
+      "window_days": 3
+    },
+    "ffill": {
+      "enabled": true,
+      "max_consecutive": 180
+    },
+    "notes": ""
+  },
+  "model": {
+    "model_id": "m_31cb849ecac19953",
+    "name": "baseline_v0",
+    "model_type": "baseline_linear",
+    "params": {
+      "alpha": 0.001,
+      "epochs": 1
+    }
+  },
+  "eval": {
+    "eval_id": "e_77b5c6f07df3a08a",
+    "name": "eval_v0",
+    "wf_folds": 6,
+    "slices": {
+      "vol_regime": true
+    }
+  }
+}

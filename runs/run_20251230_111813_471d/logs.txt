@@ -1,0 +1,8 @@
+[run_20251230_111813_471d] start
+prepared_samples=data\outputs\prepared\prep_004d6824ea85b584\prepared_samples.parquet rows=314811 cols=10
+model_type=transformer_seq params={'seq_len': 64, 'd_model': 128, 'n_heads': 4, 'n_layers': 2, 'dropout': 0.2, 'pool': 'last', 'lr': 0.0002, 'batch_size': 2048, 'epochs': 100, 'weight_decay': 0.01, 'grad_clip': 1.0, 'huber_delta': 1.0, 'loss_type': 'huber', 'amp': True, 'amp_dtype': 'bf16', 'tf32': True, 'num_workers': 16, 'pin_memory': True, 'persistent_workers': True, 'prefetch_factor': 2, 'group_batch_size': 32}
+eval_overrides={'wf_folds': 6}
+torch_device=cuda
+loss_type=huber
+STOP requested (stop.flag). Exiting...
+FAILED: cancelled by user
