@@ -7,7 +7,8 @@ import sys
 from pathlib import Path
 
 # 添加專案根目錄到路徑
-sys.path.insert(0, str(Path(__file__).parent.parent))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(PROJECT_ROOT))
 
 from src.catalog.database import CatalogDB
 from src.catalog.coverage import CoverageAnalyzer
@@ -26,6 +27,9 @@ import json
 import polars as pl
 from ui.table_paster import render_table_paster
 
+CATALOG_DB_PATH = PROJECT_ROOT / "catalog.db"
+SCHEMA_DB_PATH = PROJECT_ROOT / "schema.db"
+
 
 st.set_page_config(page_title="Binance Vision 資料統整系統", layout="wide")
 
@@ -41,11 +45,14 @@ page = st.sidebar.selectbox(
 # 初始化資料庫連接
 @st.cache_resource
 def get_catalog_db():
-    return CatalogDB("catalog.db")
+    db = CatalogDB(str(CATALOG_DB_PATH))
+    # 確保新環境/空資料庫也有完整表結構，避免 no such table
+    db.init_database()
+    return db
 
 @st.cache_resource
 def get_schema_registry():
-    return SchemaRegistry("schema.db")
+    return SchemaRegistry(str(SCHEMA_DB_PATH))
 
 catalog_db = get_catalog_db()
 schema_registry = get_schema_registry()
@@ -400,7 +407,13 @@ elif page == "Recipe Composer":
         if not recipe["selections"]:
             st.error("清單沒有來源，請先加入來源。")
             st.stop()
-        cache = RawParquetCache(cache_root="data/raw_parquet", zip_root="data/raw_zips", schema_db_path="schema.db", threads=int(cache_threads))
+        cache = RawParquetCache(
+            cache_root=str(PROJECT_ROOT / "data" / "raw_parquet"),
+            zip_root=str(PROJECT_ROOT / "data" / "raw_zips"),
+            schema_db_path=str(SCHEMA_DB_PATH),
+            threads=int(cache_threads),
+            catalog_db_path=str(CATALOG_DB_PATH),
+        )
         all_manifests = []
         with st.spinner("正在建立 raw parquet 快取..."):
             for s in recipe["selections"]:
@@ -468,7 +481,7 @@ elif page == "Recipe Composer":
             st.error(str(e))
             st.stop()
 
-        builder = InteractiveDatasetBuilder("catalog.db", "schema.db")
+        builder = InteractiveDatasetBuilder(str(CATALOG_DB_PATH), str(SCHEMA_DB_PATH))
         sels = []
         for s in recipe["selections"]:
             sels.append(Selection(**s))
