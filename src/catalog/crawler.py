@@ -75,6 +75,9 @@ class CoverageCrawler:
         self.builder = CatalogBuilder(catalog_db, market=market)
         self.session = requests.Session()
         self.session.headers.update({"User-Agent": "Binance-Vision-CoverageCrawler/1.0"})
+        # 給 CLI 做「是否網路異常」提示用
+        self.network_error_count = 0
+        self.last_network_error: Optional[str] = None
 
     def head(self, url: str) -> Tuple[bool, Dict[str, Any]]:
         try:
@@ -88,6 +91,8 @@ class CoverageCrawler:
             }
             return ok, meta
         except Exception as e:
+            self.network_error_count += 1
+            self.last_network_error = str(e)
             return False, {"error": str(e)}
 
     def find_range(

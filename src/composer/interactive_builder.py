@@ -15,15 +15,9 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import json
-import zipfile
-import io
 
 import polars as pl
-from sqlalchemy.exc import OperationalError
 
-from ..catalog.database import CatalogDB
-from ..catalog.builder import CatalogBuilder
-from ..downloader.client import DownloadClient
 from ..schema.registry import SchemaRegistry
 from ..cache.raw_cache import RawParquetCache, INTERVAL_DATASETS as CACHE_INTERVAL_DATASETS
 
@@ -58,16 +52,15 @@ class BuildConfig:
 
 class InteractiveDatasetBuilder:
     def __init__(self, catalog_db_path: str = "catalog.db", schema_db_path: str = "schema.db"):
-        self.catalog_db = CatalogDB(catalog_db_path)
-        # 觸發 migration/backfill；若 SQLite 正被其他程序寫入，先略過避免 UI 中斷。
-        try:
-            self.catalog_db.init_database()
-        except OperationalError as e:
-            if "database is locked" not in str(e).lower():
-                raise
         self.schema_registry = SchemaRegistry(schema_db_path)
-        self.downloader = DownloadClient(download_dir="data/downloads")
-        self.cache = RawParquetCache(cache_root="data/raw_parquet", zip_root="data/raw_zips", schema_db_path=schema_db_path, threads=32)
+        # 實際拼貼不依賴 catalog.db；保留參數只為相容舊呼叫端。
+        self.cache = RawParquetCache(
+            cache_root="data/raw_parquet",
+            zip_root="data/raw_zips",
+            schema_db_path=schema_db_path,
+            threads=32,
+            catalog_db_path=catalog_db_path,
+        )
 
     def build(self, selections: List[Selection], cfg: BuildConfig) -> Tuple[str, str]:
         """
@@ -92,10 +85,20 @@ class InteractiveDatasetBuilder:
 
         total_rows = sum(df.height for df in dfs)
         if total_rows == 0:
+            reasons = []
+            for rep in per_sel_report[:5]:
+                sel = rep.get("selection", {})
+                summary = (rep.get("cache_manifest") or {}).get("summary") or {}
+                reasons.append(
+                    f"{sel.get('symbol')}/{sel.get('dataset_type')}/{sel.get('interval') or '-'}"
+                    f"/{sel.get('cadence', 'daily')}: ok={summary.get('ok', 0)}, "
+                    f"404={summary.get('missing_404', 0)}, network={summary.get('network_error', 0)}"
+                )
             raise ValueError(
-                "找不到可用檔案（all selections task_count=0）。"
-                "請先重建 catalog 檔案索引：執行 `python setup_catalog.py` "
-                "或 `python -m cli.main catalog-build ...`，再重試 Dataset Builder。"
+                "找不到可用檔案。實際拼貼模式已改成直接從 Binance Vision 抓取，"
+                "本次所有 selections 都沒有成功下載任何資料。"
+                "請檢查日期範圍、symbol/interval 是否正確，以及網路狀態。"
+                f" 前幾個來源摘要：{' | '.join(reasons)}"
             )
 
         # 2) 以 anchor 的 ts 當主軸
@@ -149,20 +152,10 @@ class InteractiveDatasetBuilder:
     # ---------------- internals ----------------
     def _load_selection_cached(self, sel: Selection, start: str, end: str) -> Tuple[pl.DataFrame, Dict[str, Any]]:
         schema = self.schema_registry.get_schema(sel.dataset_type)
-
-        # columns to use
-        if sel.use_all_columns:
-            cols = self._all_columns_excluding_ignore(schema)
-        else:
-            cols = sel.columns or []
-
-        # ensure time key is present
-        time_key = sel.time_key_override or self._infer_time_key(schema, cols)
-        if time_key and time_key not in cols:
-            cols = [time_key] + cols
+        requested_cols = list(sel.columns or [])
 
         selected_cadence = (sel.cadence or "daily").lower()
-        prefer_monthly = selected_cadence == "monthly"
+        prefer_monthly = False
 
         # 1) build raw cache for this selection
         tasks, plan_meta = self.cache.plan_tasks(
@@ -173,6 +166,7 @@ class InteractiveDatasetBuilder:
             end=end,
             interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
             prefer_monthly=prefer_monthly,
+            selected_cadence=selected_cadence,
         )
         manifest = self.cache.build_cache(
             tasks,
@@ -181,66 +175,30 @@ class InteractiveDatasetBuilder:
         )
 
         # 2) scan cached parquet with selected cadence
-        lf_daily = None
-        lf_monthly = None
-        if selected_cadence == "daily":
-            lf_daily = self.cache.scan_cached(
+        scan_cadences = [selected_cadence] if selected_cadence in ("daily", "monthly") else ["daily", "monthly"]
+        lazy_frames = []
+        for cadence in scan_cadences:
+            lf = self.cache.scan_cached(
                 market=sel.market,
                 dataset_type=sel.dataset_type,
                 symbol=sel.symbol,
                 start=start,
                 end=end,
                 interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-                cadence="daily",
+                cadence=cadence,
                 columns=None,
             )
-        elif selected_cadence == "monthly":
-            lf_monthly = self.cache.scan_cached(
-                market=sel.market,
-                dataset_type=sel.dataset_type,
-                symbol=sel.symbol,
-                start=start,
-                end=end,
-                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-                cadence="monthly",
-                columns=None,
-            )
-        else:
-            # fallback: unknown cadence, keep original behavior
-            lf_daily = self.cache.scan_cached(
-                market=sel.market,
-                dataset_type=sel.dataset_type,
-                symbol=sel.symbol,
-                start=start,
-                end=end,
-                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-                cadence="daily",
-                columns=None,
-            )
-            lf_monthly = self.cache.scan_cached(
-                market=sel.market,
-                dataset_type=sel.dataset_type,
-                symbol=sel.symbol,
-                start=start,
-                end=end,
-                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-                cadence="monthly",
-                columns=None,
-            )
+            if lf is not None:
+                lazy_frames.append((cadence, lf))
 
         dfs_scan: List[pl.DataFrame] = []
-        try:
-            dfd = lf_daily.collect() if lf_daily is not None else pl.DataFrame()
-            if dfd.height > 0:
-                dfs_scan.append(dfd)
-        except Exception:
-            pass
-        try:
-            dfm = lf_monthly.collect() if lf_monthly is not None else pl.DataFrame()
-            if dfm.height > 0:
-                dfs_scan.append(dfm)
-        except Exception:
-            pass
+        for _, lf in lazy_frames:
+            try:
+                df_part = lf.collect()
+                if df_part.height > 0:
+                    dfs_scan.append(df_part)
+            except Exception:
+                pass
 
         if not dfs_scan:
             df = pl.DataFrame()
@@ -250,8 +208,10 @@ class InteractiveDatasetBuilder:
             # daily 優先：先放 daily，再放 monthly；再用 (ts + 欄位) 去重（keep first）
             df = pl.concat(dfs_scan, how="diagonal_relaxed")
 
+        available_cols = [c for c in df.columns if c.lower() != "ignore"]
+        time_key = sel.time_key_override or self._infer_time_key(schema, requested_cols or available_cols)
+
         # normalize time key to ts
-        # If file already has open_time/time/etc, keep; else use provenance _date_key is not enough.
         df = self._normalize_time(df, time_key)
 
         # 篩選時間範圍（避免 monthly 包含整月資料）
@@ -264,7 +224,21 @@ class InteractiveDatasetBuilder:
             pass
 
         # select cols
-        keep_cols = ["ts"] + [c for c in cols if c and c != time_key and c in df.columns]
+        if sel.use_all_columns:
+            cols = self._all_columns_excluding_ignore(schema)
+            if not cols:
+                cols = [c for c in df.columns if c not in {"ts", time_key} and c.lower() != "ignore"]
+        else:
+            cols = [c for c in requested_cols if c in df.columns]
+
+        if time_key and time_key in df.columns and time_key not in cols:
+            cols = [time_key] + cols
+
+        selected_feature_cols = [c for c in cols if c and c != time_key and c in df.columns]
+        if sel.use_all_columns and not selected_feature_cols:
+            selected_feature_cols = [c for c in df.columns if c not in {"ts", time_key} and c.lower() != "ignore"]
+
+        keep_cols = ["ts"] + selected_feature_cols
         df = df.select([c for c in keep_cols if c in df.columns])
 
         # de-duplicate on ts: keep last
@@ -280,20 +254,29 @@ class InteractiveDatasetBuilder:
             "selection": asdict(sel),
             "selected_cadence": selected_cadence,
             "time_key": time_key,
+            "source_columns_detected": available_cols,
             "cache_plan": plan_meta,
             "cache_manifest": {
                 "manifest_path": manifest.get("manifest_path"),
                 "summary": manifest.get("summary"),
-                # 注意：missing_preview 會被截斷（預覽用），總數請看 summary.missing
                 "missing_total": int((manifest.get("summary") or {}).get("missing", 0)),
+                "missing_404_total": int((manifest.get("summary") or {}).get("missing_404", 0)),
+                "network_error_total": int((manifest.get("summary") or {}).get("network_error", 0)),
                 "error_total": int((manifest.get("summary") or {}).get("error", 0)),
                 "skipped_total": int((manifest.get("summary") or {}).get("skipped", 0)),
                 "ok_total": int((manifest.get("summary") or {}).get("ok", 0)),
+                "downloaded_preview_count": len(manifest.get("downloaded_preview", [])),
                 "missing_preview_count": len(manifest.get("missing_preview", [])),
+                "network_error_preview_count": len(manifest.get("network_error_preview", [])),
                 "error_preview_count": len(manifest.get("error_preview", [])),
             },
-            "columns_selected": [c for c in cols if c and c != time_key],
+            "downloaded_preview": manifest.get("downloaded_preview", []),
+            "missing_preview": manifest.get("missing_preview", []),
+            "network_error_preview": manifest.get("network_error_preview", []),
+            "error_preview": manifest.get("error_preview", []),
+            "columns_selected": selected_feature_cols,
             "final_columns": df.columns,
+            "row_count": df.height,
         }
         return df, report
 

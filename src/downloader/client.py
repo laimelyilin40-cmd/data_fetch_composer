@@ -54,7 +54,7 @@ class DownloadClient:
         # 下載
         ensure_dir(os.path.dirname(local_path))
         
-        response = self.session.get(url, stream=True, timeout=60)
+        response = self.session.get(url, stream=True, timeout=60, allow_redirects=True)
         response.raise_for_status()
         
         total_size = int(response.headers.get("Content-Length", 0))
@@ -72,20 +72,32 @@ class DownloadClient:
                     pbar.update(len(chunk))
         
         return local_path
+
+    def probe_file(self, url: str, timeout: int = 20) -> dict:
+        """探測遠端檔案是否存在，並區分 404 與網路錯誤。"""
+        try:
+            response = self.session.head(url, timeout=timeout, allow_redirects=True)
+            return {
+                "exists": response.status_code == 200,
+                "status_code": response.status_code,
+                "size": int(response.headers.get("Content-Length", 0)) if response.status_code == 200 else None,
+                "etag": response.headers.get("ETag"),
+                "last_modified": response.headers.get("Last-Modified"),
+                "error": None,
+                "error_type": None,
+            }
+        except requests.RequestException as e:
+            return {
+                "exists": False,
+                "status_code": None,
+                "size": None,
+                "etag": None,
+                "last_modified": None,
+                "error": str(e),
+                "error_type": "network",
+            }
     
     def get_file_info(self, url: str) -> dict:
         """取得檔案資訊（不下載）"""
-        try:
-            response = self.session.head(url, timeout=10, allow_redirects=True)
-            if response.status_code == 200:
-                return {
-                    "exists": True,
-                    "size": int(response.headers.get("Content-Length", 0)),
-                    "etag": response.headers.get("ETag"),
-                    "last_modified": response.headers.get("Last-Modified")
-                }
-            else:
-                return {"exists": False}
-        except:
-            return {"exists": False}
+        return self.probe_file(url, timeout=10)
 

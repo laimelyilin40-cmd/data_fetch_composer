@@ -398,7 +398,7 @@ elif page == "Recipe Composer":
     )
 
     st.subheader("預先快取（raw -> parquet 分區）")
-    st.write("建議先做一次快取：之後組裝不同清單時會直接讀 parquet，不用再重複下載/解壓。")
+    st.write("建議先做一次快取：之後組裝不同清單時會直接讀 parquet，不用再重複下載/解壓。實際拼貼已不依賴 coverage DB，會直接按條件嘗試抓遠端檔案。")
     cache_threads = st.number_input("快取執行緒數", min_value=1, max_value=64, value=32, step=1, key=f"thr_{recipe_idx}")
     prefer_monthly = st.checkbox("優先使用 monthly（缺的再用 daily 補洞）", value=True, key=f"pm_{recipe_idx}")
     force_rebuild = st.checkbox("強制重建快取（覆寫既有 raw parquet，修復 dtype 不一致等問題）", value=False, key=f"force_{recipe_idx}")
@@ -426,6 +426,7 @@ elif page == "Recipe Composer":
                     end=recipe["end"],
                     interval=sel.interval,
                     prefer_monthly=prefer_monthly,
+                    selected_cadence=sel.cadence or "daily",
                 )
                 manifest = cache.build_cache(
                     tasks,

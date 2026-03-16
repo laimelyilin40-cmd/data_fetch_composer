@@ -6,6 +6,7 @@ import argparse
 import sys
 import shutil
 from pathlib import Path
+from tqdm import tqdm
 
 # 添加專案根目錄到路徑
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -283,28 +284,54 @@ def cmd_menu_build(args):
     intervals = args.intervals or CatalogBuilder.INTERVALS
     interval_datasets = set(["klines", "indexPriceKlines", "markPriceKlines", "premiumIndexKlines"])
 
-    from datetime import datetime
-    from sqlalchemy.orm import Session
-    from src.catalog.database import Coverage
-
     for market in markets:
         crawler = CoverageCrawler(db, market=market)
         datasets = args.dataset_types or market_datasets.get(market, [])
         print(f"\n=== Building menu coverage: market={market} symbols={len(symbols)} datasets={datasets} ===")
 
+        # 先做一次網路探測：若連不到 Vision，先提示，不讓使用者誤以為「全部都不存在」
+        try:
+            probe = crawler.session.head("https://data.binance.vision/", timeout=8, allow_redirects=True)
+            if probe.status_code >= 500:
+                print(f"⚠️ 網路提示：Binance Vision 目前回應異常（HTTP {probe.status_code}），coverage 結果可能大量為空。")
+        except Exception as e:
+            print(f"⚠️ 網路提示：目前無法連線到 Binance Vision（{e}）。將繼續嘗試，但結果可能不完整。")
+
+        jobs = []
+        cadences = ("daily", "monthly") if args.include_monthly else ("daily",)
+        for sym in symbols:
+            for ds in datasets:
+                if ds in interval_datasets:
+                    for itv in intervals:
+                        for cadence in cadences:
+                            jobs.append((sym, ds, itv, cadence))
+                else:
+                    for cadence in cadences:
+                        jobs.append((sym, ds, None, cadence))
+
+        found_count = 0
+
         with db.get_session() as session:
-            for sym in symbols:
-                for ds in datasets:
-                    if ds in interval_datasets:
-                        for itv in intervals:
-                            for cadence in ("daily", "monthly") if args.include_monthly else ("daily",):
-                                res = crawler.find_range(sym, ds, cadence=cadence, interval=itv)
-                                _upsert_coverage_row(session, market, ds, sym, itv, cadence, res)
-                    else:
-                        for cadence in ("daily", "monthly") if args.include_monthly else ("daily",):
-                            res = crawler.find_range(sym, ds, cadence=cadence, interval=None)
-                            _upsert_coverage_row(session, market, ds, sym, None, cadence, res)
+            with tqdm(total=len(jobs), desc=f"menu-build {market}", unit="combo") as pbar:
+                for idx, (sym, ds, itv, cadence) in enumerate(jobs, start=1):
+                    res = crawler.find_range(sym, ds, cadence=cadence, interval=itv)
+                    _upsert_coverage_row(session, market, ds, sym, itv, cadence, res)
+                    if res.exists:
+                        found_count += 1
+
+                    # 每 50 筆 commit 一次，避免一次交易太大，也能在中途中斷時保留進度
+                    if idx % 50 == 0:
+                        session.commit()
+                    pbar.update(1)
+
                 session.commit()
+
+        if crawler.network_error_count > 0:
+            print(
+                f"⚠️ 網路提示：{market} 盤點過程中發生 {crawler.network_error_count} 次連線錯誤，"
+                f"最後一次錯誤：{crawler.last_network_error}"
+            )
+        print(f"完成 {market}：有資料組合 {found_count}/{len(jobs)}")
 
     print("\nMenu coverage build done. You can now open UI and browse the menu.")
 
