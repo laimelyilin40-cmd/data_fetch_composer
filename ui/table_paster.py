@@ -65,11 +65,11 @@ def _format_polars_error(e: Exception, max_len: int = 500) -> str:
 
 
 def render_table_paster():
-    st.header("🧩 表格拼貼器（公式加欄 / 橫向擴充）")
+    st.header("表格拼貼器（公式加欄 / 橫向擴充）")
     st.info(
         "流程：先選一個『已對齊好的 parquet 寬表』→ 下面用公式新增特徵欄位 → 先看範例 rows → 確認後輸出成新 parquet。"
     )
-    with st.expander("📚 公式表（可用函數/語法/範例）", expanded=False):
+    with st.expander("公式表（可用函數/語法/範例）", expanded=False):
         p = Path("FORMULA_TABLE.md")
         if p.exists():
             st.markdown(p.read_text(encoding="utf-8"))
@@ -153,7 +153,7 @@ def render_table_paster():
     cur_names = sorted(set(cur_names))
 
     del_cols = st.multiselect("刪除欄位（多選）", cur_names, default=[], key=f"tp_del_pick::{ds_name}::{pq_name}")
-    if st.button("🗑️ 刪除選取欄位", key=f"tp_del_btn::{ds_name}::{pq_name}"):
+    if st.button("刪除選取欄位", key=f"tp_del_btn::{ds_name}::{pq_name}"):
         if not del_cols:
             st.warning("請先選要刪除的欄位。")
         else:
@@ -183,11 +183,11 @@ def render_table_paster():
 
         colA, colB, colC = st.columns([1, 1, 2])
         with colA:
-            if st.button("✅ 全選", key=f"tp_wrap_pick_all::{ds_name}::{pq_name}"):
+            if st.button("全選", key=f"tp_wrap_pick_all::{ds_name}::{pq_name}"):
                 st.session_state[pick_key] = list(all_names)
                 st.rerun()
         with colB:
-            if st.button("🧹 清除", key=f"tp_wrap_pick_clear::{ds_name}::{pq_name}"):
+            if st.button("清除", key=f"tp_wrap_pick_clear::{ds_name}::{pq_name}"):
                 st.session_state[pick_key] = []
                 st.rerun()
         with colC:

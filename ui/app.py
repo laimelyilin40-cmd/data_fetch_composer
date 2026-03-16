@@ -33,7 +33,7 @@ SCHEMA_DB_PATH = PROJECT_ROOT / "schema.db"
 
 st.set_page_config(page_title="Binance Vision 資料統整系統", layout="wide")
 
-st.title("📊 Binance Vision 資料統整系統")
+st.title("Binance Vision 資料統整系統")
 
 # 側邊欄
 st.sidebar.title("導航")
@@ -59,9 +59,9 @@ schema_registry = get_schema_registry()
 analyzer = CoverageAnalyzer(catalog_db)
 
 if page == "Data Menu":
-    st.header("🗂️ Data Menu（Spot + Futures UM，前十大）")
+    st.header("Data Menu（Spot + Futures UM）")
 
-    st.info("這個頁面是你要的『大菜單』：用下拉式選單看每個標的在不同資料分類下的起訖時間與表頭。")
+    st.info("可用下拉式選單看每個標的在不同資料分類下的起訖時間與表頭。")
 
     # market / symbol / dataset selection
     colA, colB, colC, colD = st.columns([1.2, 1.2, 1.4, 1.2])
@@ -268,7 +268,7 @@ elif page == "Schema Dictionary":
         st.warning(f"Schema 尚未註冊，請先執行 schema inspection")
 
 elif page == "Recipe Composer":
-    st.header("Dataset Builder（自組裝車）")
+    st.header("Dataset Builder")
 
     st.write("你可以建立多個『清單/組合』，每個清單加入多個來源（選 market/symbol/dataset/interval，欄位可選全部或勾選），再按一下就產出 Parquet + 報告。")
 
@@ -320,7 +320,7 @@ elif page == "Recipe Composer":
             ds_list = ["aggTrades", "bookDepth", "bookTicker", "fundingRate", "indexPriceKlines", "klines", "markPriceKlines", "metrics", "premiumIndexKlines", "trades"]
         sel_dataset = st.selectbox("Dataset", ds_list, key=f"d_{recipe_idx}")
     with colx4:
-        sel_cadence = st.selectbox("Cadence", ["daily"], key=f"c_{recipe_idx}")
+        sel_cadence = st.selectbox("Cadence", ["daily", "monthly"], key=f"c_{recipe_idx}")
 
     sel_interval = None
     if sel_dataset in {"klines", "indexPriceKlines", "markPriceKlines", "premiumIndexKlines"}:

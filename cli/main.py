@@ -279,8 +279,8 @@ def cmd_menu_build(args):
         "futures_um": ["aggTrades", "bookDepth", "bookTicker", "fundingRate", "indexPriceKlines", "klines", "markPriceKlines", "metrics", "premiumIndexKlines", "trades"],
     }
 
-    # intervals（只對 klines 類）
-    intervals = args.intervals or ["1m", "5m", "1h", "1d"]
+    # intervals（只對 klines 類）：預設使用完整清單，避免 coverage 漏 interval
+    intervals = args.intervals or CatalogBuilder.INTERVALS
     interval_datasets = set(["klines", "indexPriceKlines", "markPriceKlines", "premiumIndexKlines"])
 
     from datetime import datetime
@@ -422,7 +422,7 @@ def main():
     parser_menu.add_argument("--markets", nargs="+", choices=["spot", "futures_um"])
     parser_menu.add_argument("--symbols", nargs="+", help="預設為固定前十大 USDT 標的")
     parser_menu.add_argument("--dataset-types", nargs="+", help="覆寫 market 預設 dataset 列表")
-    parser_menu.add_argument("--intervals", nargs="+", help="klines 類的 interval（預設：1m 5m 1h 1d）")
+    parser_menu.add_argument("--intervals", nargs="+", help="klines 類的 interval（預設：全部支援 interval）")
     parser_menu.add_argument("--include-monthly", action="store_true", help="同時盤點 monthly 檔（若存在）")
     parser_menu.set_defaults(func=cmd_menu_build)
 

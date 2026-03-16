@@ -19,6 +19,7 @@ import zipfile
 import io
 
 import polars as pl
+from sqlalchemy.exc import OperationalError
 
 from ..catalog.database import CatalogDB
 from ..catalog.builder import CatalogBuilder
@@ -58,8 +59,12 @@ class BuildConfig:
 class InteractiveDatasetBuilder:
     def __init__(self, catalog_db_path: str = "catalog.db", schema_db_path: str = "schema.db"):
         self.catalog_db = CatalogDB(catalog_db_path)
-        # 觸發 migration/backfill
-        self.catalog_db.init_database()
+        # 觸發 migration/backfill；若 SQLite 正被其他程序寫入，先略過避免 UI 中斷。
+        try:
+            self.catalog_db.init_database()
+        except OperationalError as e:
+            if "database is locked" not in str(e).lower():
+                raise
         self.schema_registry = SchemaRegistry(schema_db_path)
         self.downloader = DownloadClient(download_dir="data/downloads")
         self.cache = RawParquetCache(cache_root="data/raw_parquet", zip_root="data/raw_zips", schema_db_path=schema_db_path, threads=32)
@@ -84,6 +89,14 @@ class InteractiveDatasetBuilder:
             df, rep = self._load_selection_cached(sel, cfg.start, cfg.end)
             dfs.append(df)
             per_sel_report.append(rep)
+
+        total_rows = sum(df.height for df in dfs)
+        if total_rows == 0:
+            raise ValueError(
+                "找不到可用檔案（all selections task_count=0）。"
+                "請先重建 catalog 檔案索引：執行 `python setup_catalog.py` "
+                "或 `python -m cli.main catalog-build ...`，再重試 Dataset Builder。"
+            )
 
         # 2) 以 anchor 的 ts 當主軸
         anchor_df = dfs[cfg.anchor_index]
@@ -148,7 +161,10 @@ class InteractiveDatasetBuilder:
         if time_key and time_key not in cols:
             cols = [time_key] + cols
 
-        # 1) build raw cache for this selection (monthly -> daily -> missing report)
+        selected_cadence = (sel.cadence or "daily").lower()
+        prefer_monthly = selected_cadence == "monthly"
+
+        # 1) build raw cache for this selection
         tasks, plan_meta = self.cache.plan_tasks(
             market=sel.market,
             dataset_type=sel.dataset_type,
@@ -156,31 +172,61 @@ class InteractiveDatasetBuilder:
             start=start,
             end=end,
             interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-            prefer_monthly=True,
+            prefer_monthly=prefer_monthly,
         )
-        manifest = self.cache.build_cache(tasks, prefer_monthly=True, manifest_name=f"cache_{sel.market}_{sel.symbol}_{sel.dataset_type}")
+        manifest = self.cache.build_cache(
+            tasks,
+            prefer_monthly=prefer_monthly,
+            manifest_name=f"cache_{sel.market}_{sel.symbol}_{sel.dataset_type}_{selected_cadence}",
+        )
 
-        # 2) scan cached parquet (monthly + daily)，並保證 daily 覆蓋優先
-        lf_daily = self.cache.scan_cached(
-            market=sel.market,
-            dataset_type=sel.dataset_type,
-            symbol=sel.symbol,
-            start=start,
-            end=end,
-            interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-            cadence="daily",
-            columns=None,
-        )
-        lf_monthly = self.cache.scan_cached(
-            market=sel.market,
-            dataset_type=sel.dataset_type,
-            symbol=sel.symbol,
-            start=start,
-            end=end,
-            interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
-            cadence="monthly",
-            columns=None,
-        )
+        # 2) scan cached parquet with selected cadence
+        lf_daily = None
+        lf_monthly = None
+        if selected_cadence == "daily":
+            lf_daily = self.cache.scan_cached(
+                market=sel.market,
+                dataset_type=sel.dataset_type,
+                symbol=sel.symbol,
+                start=start,
+                end=end,
+                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
+                cadence="daily",
+                columns=None,
+            )
+        elif selected_cadence == "monthly":
+            lf_monthly = self.cache.scan_cached(
+                market=sel.market,
+                dataset_type=sel.dataset_type,
+                symbol=sel.symbol,
+                start=start,
+                end=end,
+                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
+                cadence="monthly",
+                columns=None,
+            )
+        else:
+            # fallback: unknown cadence, keep original behavior
+            lf_daily = self.cache.scan_cached(
+                market=sel.market,
+                dataset_type=sel.dataset_type,
+                symbol=sel.symbol,
+                start=start,
+                end=end,
+                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
+                cadence="daily",
+                columns=None,
+            )
+            lf_monthly = self.cache.scan_cached(
+                market=sel.market,
+                dataset_type=sel.dataset_type,
+                symbol=sel.symbol,
+                start=start,
+                end=end,
+                interval=sel.interval if sel.dataset_type in CACHE_INTERVAL_DATASETS else None,
+                cadence="monthly",
+                columns=None,
+            )
 
         dfs_scan: List[pl.DataFrame] = []
         try:
@@ -232,6 +278,7 @@ class InteractiveDatasetBuilder:
 
         report = {
             "selection": asdict(sel),
+            "selected_cadence": selected_cadence,
             "time_key": time_key,
             "cache_plan": plan_meta,
             "cache_manifest": {

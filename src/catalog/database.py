@@ -10,6 +10,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship, Session
+from sqlalchemy.exc import OperationalError
 import json
 
 Base = declarative_base()
@@ -110,39 +111,67 @@ class CatalogDB:
     
     def __init__(self, db_path: str = "catalog.db"):
         self.db_path = db_path
-        self.engine = create_engine(f"sqlite:///{db_path}", echo=False)
+        self.engine = create_engine(
+            f"sqlite:///{db_path}",
+            echo=False,
+            connect_args={
+                # 在 Streamlit 多執行緒/多連線時，給 SQLite 足夠等待時間避免立刻報 locked
+                "timeout": 30,
+                "check_same_thread": False,
+            },
+        )
         self.Session = sessionmaker(bind=self.engine)
     
     def init_database(self):
         """初始化資料庫表結構"""
         Base.metadata.create_all(self.engine)
+        self._apply_sqlite_pragmas()
         self._migrate_if_needed()
+
+    def _apply_sqlite_pragmas(self):
+        """提升 SQLite 並行穩定性；失敗時不阻斷流程。"""
+        try:
+            with self.engine.connect() as conn:
+                conn.exec_driver_sql("PRAGMA busy_timeout=30000")
+                conn.exec_driver_sql("PRAGMA journal_mode=WAL")
+                conn.exec_driver_sql("PRAGMA synchronous=NORMAL")
+        except Exception:
+            pass
+
+    def _exec_sql_ignore_locked(self, conn, sql: str):
+        try:
+            conn.exec_driver_sql(sql)
+        except OperationalError as e:
+            if "database is locked" in str(e).lower():
+                # 其他程序正在寫入時，先跳過 migration backfill，避免 UI 直接中斷
+                return
+            raise
 
     def _migrate_if_needed(self):
         """
         輕量 migration：
         - 為既有 catalog.db 補上 market 欄位（files/coverage）
         """
-        with self.engine.connect() as conn:
+        with self.engine.begin() as conn:
             # files.market
             cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(files)").fetchall()]
             if "market" not in cols:
-                conn.exec_driver_sql("ALTER TABLE files ADD COLUMN market VARCHAR(20) DEFAULT 'futures_um'")
-                conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_files_market ON files (market)")
+                self._exec_sql_ignore_locked(conn, "ALTER TABLE files ADD COLUMN market VARCHAR(20) DEFAULT 'futures_um'")
+                self._exec_sql_ignore_locked(conn, "CREATE INDEX IF NOT EXISTS ix_files_market ON files (market)")
             # backfill (SQLite 既有 rows 可能是 NULL)
-            conn.exec_driver_sql("UPDATE files SET market='futures_um' WHERE market IS NULL OR market=''")
+            self._exec_sql_ignore_locked(conn, "UPDATE files SET market='futures_um' WHERE market IS NULL OR market=''")
 
             # coverage.market
             cols = [row[1] for row in conn.exec_driver_sql("PRAGMA table_info(coverage)").fetchall()]
             if "market" not in cols:
-                conn.exec_driver_sql("ALTER TABLE coverage ADD COLUMN market VARCHAR(20) DEFAULT 'futures_um'")
-                conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_coverage_market ON coverage (market)")
+                self._exec_sql_ignore_locked(conn, "ALTER TABLE coverage ADD COLUMN market VARCHAR(20) DEFAULT 'futures_um'")
+                self._exec_sql_ignore_locked(conn, "CREATE INDEX IF NOT EXISTS ix_coverage_market ON coverage (market)")
             if "cadence" not in cols:
-                conn.exec_driver_sql("ALTER TABLE coverage ADD COLUMN cadence VARCHAR(20) DEFAULT 'daily'")
-                conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_coverage_cadence ON coverage (cadence)")
+                self._exec_sql_ignore_locked(conn, "ALTER TABLE coverage ADD COLUMN cadence VARCHAR(20) DEFAULT 'daily'")
+                self._exec_sql_ignore_locked(conn, "CREATE INDEX IF NOT EXISTS ix_coverage_cadence ON coverage (cadence)")
             # backfill (SQLite 既有 rows 可能是 NULL)
-            conn.exec_driver_sql("UPDATE coverage SET market='futures_um' WHERE market IS NULL OR market=''")
-            conn.exec_driver_sql("UPDATE coverage SET cadence='daily' WHERE cadence IS NULL OR cadence=''")
+            self._exec_sql_ignore_locked(conn, "UPDATE coverage SET market='futures_um' WHERE market IS NULL OR market=''")
+            self._exec_sql_ignore_locked(conn, "UPDATE coverage SET cadence='daily' WHERE cadence IS NULL OR cadence=''")
     
     def get_session(self) -> Session:
         """取得資料庫 session"""
