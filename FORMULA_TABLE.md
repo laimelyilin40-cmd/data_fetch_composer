@@ -1,192 +1,322 @@
-### 表格拼貼器：公式表（MVP 版）
+# Table Paster 公式參考
 
-這份表是給 `UI -> Table Paster` 用的「可用語法/函數清單 + 範例」。
+`Table Paster` 用於已完成時間對齊的寬表，定位是二維資料處理層。所有公式皆以欄為單位運算，底層會編譯為 Polars Expr，並在 LazyFrame 上執行。
 
-> 規則：所有公式都是「整欄向量化」，輸入是欄（序列），輸出也是欄（序列）。
+這套公式系統同時支援兩個方向：
 
----
+- 縱向運算：沿時間軸處理單一欄位
+- 橫向運算：在同一個 timestamp 下跨多欄位計算
 
-### 1) 欄位引用
+這個設計的目的有兩個：
 
-- **直接用欄位名（推薦）**：如果欄位名是合法變數名（通常你現在的命名都可以）
-  - 例：`BTCUSDT_klines_1m_close`
-- **用 COL(...)**：欄位名比較奇怪或你想寫得更明確時
-  - 例：`COL("BTCUSDT_klines_1m_close")`
+- 保持公式語法接近試算表與研究流程慣用寫法
+- 避免任意 Python 執行，將計算限制在可分析、可向量化的範圍內
 
----
+## 設計原則
 
-### 2) 基本運算子（像試算表）
+### 向量化
 
-- **算術**：`+  -  *  /  **`
-- **比較**：`>  >=  <  <=  ==  !=`
-- **邏輯**：`AND  OR  NOT`（也可以用 `and / or / not`）
+每個公式輸入的是一個欄位或一組欄位，輸出仍然是一個欄位。沒有逐列 Python 迴圈，也不支援任意副作用。
 
-範例：
+### 安全性
 
-- `BTCUSDT_klines_1m_close / LAG(BTCUSDT_klines_1m_close, 1) - 1`
-- `IF(BTCUSDT_klines_1m_volume > 0, BTCUSDT_klines_1m_close, NULL)`
+公式會先經過 AST 檢查，只允許：
 
----
+- 常數
+- 欄位名稱
+- 算術與比較運算
+- 布林運算
+- 函數呼叫
 
-### 3) 時間序列（沿時間／變著算）
+不允許：
 
-- **LAG(x, n)**：往前 n 根（n>0）
-  - 例：`LAG(BTCUSDT_klines_1m_close, 1)`
-- **DIFF(x, n)**：差分（delta）
-  - 例：`DIFF(BTCUSDT_klines_1m_close, 1)`
-- **PCT_CHANGE(x, n)**：百分比變化（simple return）
-  - 例：`PCT_CHANGE(BTCUSDT_klines_1m_close, 1)`
-- **LOGRET(x, n)**：log return
-  - 例：`LOGRET(BTCUSDT_klines_1m_close, 1)`
+- 屬性存取
+- 下標索引
+- lambda
+- 任意 Python 內建
 
-Rolling：
+### 依賴排序
 
-- **ROLL_MEAN(x, w)** / **ROLL_STD(x, w)** / **ROLL_SUM(x, w)**（min_periods = w）
-  - 例：`ROLL_MEAN(BTCUSDT_klines_1m_close, 60)`
-  - 例：`ROLL_STD(LOGRET(BTCUSDT_klines_1m_close, 1), 60)`
+當一次建立多個新欄位時，系統會自動解析公式依賴，先建立前置欄位，再建立後續欄位。公式之間因此可以像工作表一樣串接，無需手動調整順序。
 
-平滑：
+## 語法規則
 
-- **EMA(x, span)**
-  - 例：`EMA(BTCUSDT_klines_1m_close, 60)`
+### 欄位引用
 
----
+欄位名稱若本身是合法識別字，可直接使用：
 
-### 4) 缺值處理（對齊不同時間尺度最常用）
+- `BTCUSDT_klines_1m_close`
 
-> 你的 funding / OI / metrics 這類低頻欄位，在對齊到 1m kline 時會有很多空值；常見作法是「維持最新值」。
+欄位名稱較特殊，或需要更明確的寫法時，可使用：
 
-- **FILL_FFILL(x)**：forward fill（保持最新值）
-  - 例：`FILL_FFILL(BTCUSDT_metrics_sum_open_interest)`
+- `COL("BTCUSDT_klines_1m_close")`
 
-配合運算：
+### 欄位集合
 
-- 例：`LOGRET(FILL_FFILL(BTCUSDT_metrics_sum_open_interest), 1)`
+欄位集合可透過兩種方式取得：
 
----
+- `COLS("regex")`：以正則表達式選欄
+- `SET(a, b, c, ...)`：手動指定欄位集合
 
-### 4.2) 其他常用填補 / 資料品質
+例如：
 
-- **FILL_BFILL(x)**：backfill
-- **FILL_ZERO(x)**：null -> 0
-- **ISNA(x)**：是否為 null（回傳布林序列）
-- **ISFINITE(x)**：是否為有限值（浮點）
+- `COLS(".*_klines_1m_close$")`
+- `SET(BTCUSDT_klines_1m_close, ETHUSDT_klines_1m_close)`
 
----
+### 運算子
 
-### 4.5) 全欄位公式（批次套用）
+支援的運算子如下：
 
-在 `Table Paster` 的「全欄位公式」區塊，你可以**先選一批欄位（通常是你已經寫好的特徵公式）**，再用同一個模板批次產生更多欄位。
+- 算術：`+ - * / ** %`
+- 比較：`> >= < <= == !=`
+- 邏輯：`AND OR NOT`
+- 小寫寫法同樣可用：`and or not`
 
-- **模板一定要包含 `{x}`**（代表當前被套用的那一欄）
-- 你可以選：
-  - **套在既有公式外層（推薦）**：把 `{x}` 換成 `(<原本公式>)`
-  - **套在欄位值外層**：把 `{x}` 換成 `COL('<欄位名>')`
+## 函數總覽
 
-範例：
+### 欄位與選欄
 
-- 你原本有欄位：
-  - `btc_ret_1 = LOGRET(COL('BTCUSDT_klines_1m_close'), 1)`
-- 模板：`ZSCORE({x})`，suffix：`__z`
-- 選欄：`btc_ret_1`
-- 結果會新增：
-  - `btc_ret_1__z = ZSCORE(LOGRET(COL('BTCUSDT_klines_1m_close'), 1))`
+| 類別 | 函數 | 說明 |
+| --- | --- | --- |
+| 欄位 | `COL(name)` | 以字串引用欄位 |
+| 欄位集合 | `COLS(pattern)` | 以 regex 選取欄位集合 |
+| 欄位集合 | `SET(...)` | 手動建立欄位集合 |
 
----
+### 時間序列函數
 
-### 5) 橫向（同一 timestamp 橫跨多欄）
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `LAG(x, n)` | `x, n` | 位移 `n` 期 |
+| `DIFF(x, n)` | `x, n` | `x - lag(x, n)` |
+| `PCT_CHANGE(x, n)` | `x, n` | 簡單報酬率 |
+| `LOGRET(x, n)` | `x, n` | 對數報酬率 |
+| `CUMSUM(x)` | `x` | 累積和 |
+| `CUMPROD(x)` | `x` | 累積乘積 |
 
-選欄：
+### Rolling 與平滑
 
-- **COLS("regex")**：用 regex 選一組欄（回傳欄集合）
-  - 例：`COLS(".*_klines_1m_close$")`
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `ROLL_MEAN(x, w)` | `x, w` | rolling 平均 |
+| `ROLL_STD(x, w)` | `x, w` | rolling 標準差 |
+| `ROLL_SUM(x, w)` | `x, w` | rolling 總和 |
+| `ROLL_ZSCORE(x, w)` | `x, w` | rolling z-score |
+| `EMA(x, span)` | `x, span` | 指數移動平均 |
 
-Row-wise 聚合（把同一列多欄合成一欄）：
+### 缺值與資料品質
 
-- **ROW_SUM(...)** / **ROW_MEAN(...)** / **ROW_MIN(...)** / **ROW_MAX(...)**
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `FILL_FFILL(x)` | `x` | 前向補值 |
+| `FILL_BFILL(x)` | `x` | 後向補值 |
+| `FILL_ZERO(x)` | `x` | 空值補 0 |
+| `ISNA(x)` | `x` | 是否為 null |
+| `ISFINITE(x)` | `x` | 是否為有限值 |
+| `COALESCE(a, b)` | `a, b` | 取第一個非空值 |
 
-更多橫向統計（同一列多欄）：
+### 逐元素函數
 
-- **ROW_STD(set)** / **ROW_VAR(set)**
-- **ROW_MEDIAN(set)**
-- **ROW_QUANTILE(set, q)**：q∈[0,1]
-- **ROW_COUNT_VALID(set)**：非 null 的欄數
-- **ROW_TOPK_MEAN(set, k)** / **ROW_BOTTOMK_MEAN(set, k)**
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `ABS(x)` | `x` | 絕對值 |
+| `LOG(x)` | `x` | 自然對數 |
+| `EXP(x)` | `x` | 指數函數 |
+| `SQRT(x)` | `x` | 平方根 |
+| `SIGN(x)` | `x` | 符號函數 |
+| `ROUND(x, digits)` | `x, digits` | 四捨五入 |
+| `FLOOR(x)` | `x` | 向下取整 |
+| `CEIL(x)` | `x` | 向上取整 |
+| `CLIP(x, low, high)` | `x, low, high` | 區間裁切 |
+| `CLAMP(x, low, high)` | `x, low, high` | 與 `CLIP` 等價 |
+| `MIN(a, b)` | `a, b` | 逐點最小值 |
+| `MAX(a, b)` | `a, b` | 逐點最大值 |
+| `IF(cond, a, b)` | `cond, a, b` | 向量化條件判斷 |
 
-範例：
+### 正規化與裁切
 
-- **多標的 close 平均**：
-  - `ROW_MEAN(COLS(".*_klines_1m_close$"))`
-- **多標的 close 中挑最大**：
-  - `ROW_MAX(COLS(".*_klines_1m_close$"))`
-- **多標的 close 的 top-2 平均**：
-  - `ROW_TOPK_MEAN(COLS(".*_klines_1m_close$"), 2)`
-- **多標的 close 的 50% 分位（中位附近）**：
-  - `ROW_QUANTILE(COLS(".*_klines_1m_close$"), 0.5)`
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `ZSCORE(x)` | `x` | 全樣本 z-score |
+| `MINMAX(x)` | `x` | 全樣本 min-max normalization |
+| `RANK_NORM(x)` | `x` | 全樣本 rank normalization |
+| `WINSORIZE(x, p_low, p_high)` | `x, p_low, p_high` | 以分位數裁切極端值 |
+| `ROBUST_Z(x)` | `x` | 以 median / MAD 計算 robust z-score |
 
----
+### 橫向統計
 
-### 6) 正規化 / 裁切（Normalization）
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `ROW_SUM(...)` | 欄位集合 | 同列加總 |
+| `ROW_MEAN(...)` | 欄位集合 | 同列平均 |
+| `ROW_MIN(...)` | 欄位集合 | 同列最小值 |
+| `ROW_MAX(...)` | 欄位集合 | 同列最大值 |
+| `ROW_STD(...)` | 欄位集合 | 同列標準差 |
+| `ROW_VAR(...)` | 欄位集合 | 同列變異數 |
+| `ROW_MEDIAN(...)` | 欄位集合 | 同列中位數 |
+| `ROW_QUANTILE(set, q)` | 集合, 分位數 | 同列分位數 |
+| `ROW_COUNT_VALID(set)` | 集合 | 同列非空欄位數 |
+| `ROW_TOPK_MEAN(set, k)` | 集合, k | 同列前 k 大平均 |
+| `ROW_BOTTOMK_MEAN(set, k)` | 集合, k | 同列前 k 小平均 |
 
-> 這一包就是你說的「更多正規化方式」；其中 `ZSCORE/MINMAX/RANK_NORM` 都是全樣本（含 lookahead），若要因果請用 `ROLL_ZSCORE`。
+### Cross-sectional 函數
 
-- **ZSCORE(x)**：全樣本 zscore（含 lookahead）
-- **ROLL_ZSCORE(x, w)**：rolling zscore（因果）
-- **MINMAX(x)**：全樣本 min-max（含 lookahead）
-- **RANK_NORM(x)**：全樣本 rank -> [0,1]（含 lookahead）
-- **WINSORIZE(x, p_low, p_high)**：用分位裁切（全樣本）
-- **ROBUST_Z(x)**：robust z（median/MAD）
-- **CLIP/CLAMP(x, low, high)**：硬裁切
+| 函數 | 參數 | 說明 |
+| --- | --- | --- |
+| `XS_DEMEAN(x, set)` | `x, set` | 同列去均值 |
+| `XS_ZSCORE(x, set)` | `x, set` | 同列 z-score |
+| `XS_RANK(x, set)` | `x, set` | 同列平均名次 |
+| `XS_PCTRANK(x, set)` | `x, set` | 同列百分位名次 |
+| `SOFTMAX_WEIGHT(x, set, temp)` | `x, set, temp` | 同列 softmax 權重 |
 
-範例：
+## lookahead 說明
 
-- `ROLL_ZSCORE(LOGRET(BTCUSDT_klines_1m_close, 1), 240)`
-- `ZSCORE(WINSORIZE(LOGRET(BTCUSDT_klines_1m_close, 1), 0.01, 0.99))`
-- `ROBUST_Z(BTCUSDT_klines_1m_volume)`
+以下函數使用全樣本統計，若直接用於嚴格的時間序列建模，會帶入 lookahead：
 
----
+- `ZSCORE`
+- `MINMAX`
+- `RANK_NORM`
+- `WINSORIZE`
+- `ROBUST_Z`
 
-### 7) 跨標的正規化（Cross-sectional / 同 timestamp）
+若目標偏向因果特徵，可優先使用：
 
-先用 `COLS("regex")` 選一組欄，然後對某個欄位 `x` 做同列的 demean/zscore/rank：
+- `LAG`
+- `DIFF`
+- `PCT_CHANGE`
+- `LOGRET`
+- `ROLL_*`
+- `FILL_FFILL`
 
-- **XS_DEMEAN(x, set)**：x - row_mean(set)
-- **XS_ZSCORE(x, set)**：(x-row_mean)/row_std
-- **XS_RANK(x, set)**：同列 rank（average rank）
-- **XS_PCTRANK(x, set)**：同列百分位（0~1）
-- **SOFTMAX_WEIGHT(x, set, temp)**：同列 softmax 權重
+## 參數與行為細節
 
-範例（以 close 在同列做 cross-sectional zscore）：
+### `LAG / DIFF / PCT_CHANGE / LOGRET`
 
-- `XS_ZSCORE(BTCUSDT_klines_1m_close, COLS(".*_klines_1m_close$"))`
+- `n` 必須為整數
+- `n=1` 代表與前一期比較
+- 首 `n` 期通常會得到空值
 
----
+### `ROLL_*`
 
-### 8) 基礎函數（逐元素）
+- `w` 為窗口大小
+- 目前 `min_periods = w`
+- 換句話說，窗口未滿之前不會強行輸出值
 
-- `ABS(x)`
-- `LOG(x)`
-- `EXP(x)`
-- `SQRT(x)`
-- `SIGN(x)`
-- `ROUND(x, digits)` / `FLOOR(x)` / `CEIL(x)`
-- `CLIP(x, low, high)`
-- `COALESCE(a, b)`：選第一個非空
-- `MIN(a, b)` / `MAX(a, b)`（逐點）
+### `EMA`
 
----
+- `span` 為整數
+- 底層使用 Polars 的 `ewm_mean`
 
-### 9) 常用範例（直接貼進去就能跑）
+### `WINSORIZE`
 
-- **BTC 1m logret**：
-  - `LOGRET(BTCUSDT_klines_1m_close, 1)`
-- **BTC 60 分鐘波動（rolling std of logret）**：
-  - `ROLL_STD(LOGRET(BTCUSDT_klines_1m_close, 1), 60)`
-- **OI 補值後再算變化**：
-  - `DIFF(FILL_FFILL(BTCUSDT_metrics_sum_open_interest), 1)`
-- **多標的 close 橫向平均（選出所有 close 欄）**：
-  - `ROW_MEAN(COLS(".*_klines_1m_close$"))`
-- **跨標的 zscore（BTC close 在同列 close set 裡的 z）**：
-  - `XS_ZSCORE(BTCUSDT_klines_1m_close, COLS(".*_klines_1m_close$"))`
+- `p_low`、`p_high` 必須落在 `[0, 1]`
+- 並且需滿足 `p_low <= p_high`
+
+### `ROW_QUANTILE`
+
+- `q` 必須落在 `[0, 1]`
+- 實作上會先排序，再取對應分位位置
+
+### `SOFTMAX_WEIGHT`
+
+- `temp` 必須大於 `0`
+- 溫度愈小，權重會愈集中
+
+## 範例
+
+### 報酬與波動
+
+```text
+LOGRET(BTCUSDT_klines_1m_close, 1)
+ROLL_STD(LOGRET(BTCUSDT_klines_1m_close, 1), 60)
+ROLL_ZSCORE(LOGRET(BTCUSDT_klines_1m_close, 1), 240)
+EMA(BTCUSDT_klines_1m_close, 60)
+```
+
+### OI / funding / metrics 補值後特徵
+
+```text
+FILL_FFILL(BTCUSDT_metrics_sum_open_interest)
+DIFF(FILL_FFILL(BTCUSDT_metrics_sum_open_interest), 1)
+LOGRET(FILL_FFILL(BTCUSDT_metrics_sum_open_interest), 1)
+```
+
+### 多標的橫向特徵
+
+```text
+ROW_MEAN(COLS(".*_klines_1m_close$"))
+ROW_STD(COLS(".*_klines_1m_close$"))
+ROW_TOPK_MEAN(COLS(".*_klines_1m_close$"), 3)
+ROW_COUNT_VALID(COLS(".*_klines_1m_close$"))
+```
+
+### Cross-sectional 正規化
+
+```text
+XS_ZSCORE(BTCUSDT_klines_1m_close, COLS(".*_klines_1m_close$"))
+XS_PCTRANK(BTCUSDT_klines_1m_volume, COLS(".*_klines_1m_volume$"))
+SOFTMAX_WEIGHT(BTCUSDT_klines_1m_close, COLS(".*_klines_1m_close$"), 1.0)
+```
+
+### 裁切與正規化
+
+```text
+WINSORIZE(LOGRET(BTCUSDT_klines_1m_close, 1), 0.01, 0.99)
+ZSCORE(WINSORIZE(LOGRET(BTCUSDT_klines_1m_close, 1), 0.01, 0.99))
+ROBUST_Z(BTCUSDT_klines_1m_volume)
+MINMAX(BTCUSDT_klines_1m_close)
+```
+
+### 條件與逐元素轉換
+
+```text
+IF(BTCUSDT_klines_1m_volume > 0, BTCUSDT_klines_1m_close, 0)
+ABS(LOGRET(BTCUSDT_klines_1m_close, 1))
+CLIP(BTCUSDT_klines_1m_volume, 0, 1000000)
+COALESCE(BTCUSDT_metrics_sum_open_interest, 0)
+```
+
+## 全欄位模板
+
+全欄位模板用於將同一種轉換批次套用到多個欄位。模板必須包含 `{x}`，代表當前欄位或既有公式。
+
+常見用法：
+
+- 先建立基礎特徵
+- 再批次套上標準化、裁切或平滑
+
+例如：
+
+- 原公式：`btc_ret_1 = LOGRET(COL("BTCUSDT_klines_1m_close"), 1)`
+- 模板：`ZSCORE({x})`
+- suffix：`__z`
+
+會得到：
+
+- `btc_ret_1__z = ZSCORE(LOGRET(COL("BTCUSDT_klines_1m_close"), 1))`
+
+## 使用原則
+
+### 先建立低階欄位，再建立高階欄位
+
+較穩定的順序通常是：
+
+1. 原始欄位
+2. 報酬率 / 差分 / 補值
+3. rolling 統計
+4. 正規化
+5. 橫向或 cross-sectional 特徵
+
+### 先確認欄位語意，再套標準化
+
+原欄位的時間對齊邏輯若尚未確認，過早套用 `ZSCORE` 或 `RANK_NORM` 容易掩蓋資料問題。
+
+### 先小規模驗證
+
+第一次建立新公式時，通常先做以下檢查：
+
+- 只做 1 到 3 條公式
+- 先檢查欄位值是否合理
+- 確認空值分布與尺度
+- 再批次擴大
 
 
