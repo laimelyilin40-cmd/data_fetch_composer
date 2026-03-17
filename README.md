@@ -9,8 +9,6 @@ Binance Vision 的資料天然分散在不同市場、資料集、interval 與 c
 - 縱向運算：沿時間軸處理單一欄位，例如位移、差分、報酬率、rolling 與平滑
 - 橫向運算：在同一個 timestamp 下跨多欄位或多標的計算，例如同列平均、分位數、排名與 cross-sectional 標準化
 
-因此，這個專案真正要解決的是如何把原始市場資料轉成可反覆運算的二維研究資料。
-
 ## 如何啟動
 
 ### 1. 安裝依賴
@@ -65,7 +63,7 @@ python build_menu.py
 - `Coverage Matrix`
 - `Schema Dictionary`
 
-這是 metadata 建置流程，不屬於資料拼貼主流程的硬前置。
+這是 metadata 建置流程，不屬於資料拼貼主流程的必要前置。
 
 ## 專案重點
 
@@ -74,7 +72,7 @@ python build_menu.py
 - 把分散的遠端市場檔案整理成時間對齊的研究資料表
 - 將 metadata 掃描與實際資料拼貼拆成兩條流程
 - 以 parquet 作為中介快取，降低重複下載與反覆實驗成本
-- 在 Polars 上建立支援縱向與橫向運算的安全公式系統
+- 在 Polars 上建立支援縱向與橫向運算的公式系統
 
 ## 這個專案在解什麼問題
 
@@ -302,21 +300,6 @@ UI 內另外保留三個偏向可觀察性的模組：
 
 這兩個模組主要支援 metadata、coverage 與 schema 瀏覽。
 
-## 作品集閱讀重點
-
-若從工程實作角度閱讀，最值得優先查看的模組是：
-
-- `src/cache/raw_cache.py`
-- `src/composer/interactive_builder.py`
-- `src/features/formula_engine.py`
-- `ui/table_paster.py`
-
-這幾個模組最能代表本專案的核心能力：
-
-- metadata 與 assembly 解耦
-- parquet 中介快取
-- 二維時序資料處理
-- 安全、向量化的公式系統
 
 ## 相關文件
 
