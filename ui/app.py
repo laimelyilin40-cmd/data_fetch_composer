@@ -225,7 +225,7 @@ elif page == "Coverage Matrix":
             st.info("沒有找到資料，請先執行 catalog build")
 
 elif page == "Schema Dictionary":
-    st.header("📚 Schema Dictionary")
+    st.header("Schema Dictionary")
     
     dataset_type = st.selectbox(
         "選擇資料集類型",
