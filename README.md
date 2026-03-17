@@ -1,99 +1,45 @@
-# Binance Vision 二維時序資料處理平台
+````markdown
+# Binance Vision 研究資料處理工具
 
-這個專案的核心在於把分散的原始檔案整理成可直接研究的二維時序表。
+本工具為個人量化研究流程開發，目的是將 Binance Vision 上分散的原始檔案整理為可直接分析的二維時序寬表。
 
-Binance Vision 的資料天然分散在不同市場、資料集、interval 與 cadence。實際研究流程需要的是一張已經完成時間對齊、可以直接加欄位、做統計、做特徵工程的寬表。這個專案圍繞這個目標建立了完整流程：遠端探測、快取、對齊、拼貼、公式運算與報告輸出。
+研究流程真正需要的資料形態，通常不是單一原始檔，而是一張已完成時間對齊、可直接加欄位、做統計分析與特徵工程的寬表。本工具即圍繞這個需求設計，涵蓋遠端探測、下載快取、資料對齊、表格拼貼、公式運算與報告輸出。
 
-資料處理的重點放在兩個方向：
+## 這個工具在做什麼
 
-- 縱向運算：沿時間軸處理單一欄位，例如位移、差分、報酬率、rolling 與平滑
-- 橫向運算：在同一個 timestamp 下跨多欄位或多標的計算，例如同列平均、分位數、排名與 cross-sectional 標準化
+本工具的核心工作是把分散的市場資料整理成研究可直接使用的表格。重點不在資料展示，而在資料可用性與研究流程可重現性。
 
-## 如何啟動
+主要處理內容包括：
 
-### 1. 安裝依賴
+- 根據條件推導 Binance Vision 遠端檔案位置
+- 下載並快取原始資料
+- 將原始 zip 轉成 parquet
+- 對多來源資料做時間對齊
+- 合併成研究可用的寬表
+- 在寬表上進行欄位公式運算
+- 輸出資料、recipe 與執行報告
 
-```bash
-python -m pip install -r requirements.txt
-```
+## 為什麼需要這個工具
 
-### 2. 啟動 UI
+Binance Vision 的資料天然分散在不同 market、dataset、interval 與 cadence 之下。研究流程若直接面對原始資料，常見問題包括：
 
-啟動指令：
-
-```bash
-python run_ui.py
-```
-
-預設位址：
-
-- `http://127.0.0.1:8511`
-
-也可直接使用 Streamlit：
-
-```bash
-python -m streamlit run ui/app.py
-```
-
-### 3. 首次使用順序
-
-若目標是直接產出資料集，可直接進入 `Recipe Composer -> Dataset Builder`，不需要先建立 coverage。
-
-可先用一組穩定來源驗證流程：
-
-- `market`: `futures_um`
-- `symbol`: `BTCUSDT`
-- `dataset`: `klines`
-- `interval`: `1h` 或 `15m`
-- `cadence`: `daily`
-
-完成一次資料拼貼後，再進入 `Table Paster` 做二維欄位運算。
-
-### 4. 何時需要先建 metadata
-
-若需要完整的下拉選單、coverage 預覽與 schema 資訊，可先執行：
-
-```bash
-python build_menu.py
-```
-
-這條流程主要服務：
-
-- `Data Menu`
-- `Coverage Matrix`
-- `Schema Dictionary`
-
-這是 metadata 建置流程，不屬於資料拼貼主流程的必要前置。
-
-## 專案重點
-
-本專案主要展示四件事：
-
-- 把分散的遠端市場檔案整理成時間對齊的研究資料表
-- 將 metadata 掃描與實際資料拼貼拆成兩條流程
-- 以 parquet 作為中介快取，降低重複下載與反覆實驗成本
-- 在 Polars 上建立支援縱向與橫向運算的公式系統
-
-## 這個專案在解什麼問題
-
-原始市場資料常見的工程問題包括：
-
-- 檔案分散在不同目錄規則之下
+- 檔案分散在不同目錄規則下
 - 同一份研究資料需要混合多個來源
-- metadata 掃描成本與實際下載成本不同
-- 網路品質不穩時，完整建立 coverage 很耗時
+- metadata 掃描與實際下載屬於不同流程
+- 網路品質不穩時，完整 coverage 建置成本偏高
 - 缺資料、404、網路錯誤與解析錯誤需要分開追蹤
+- 原始壓縮檔不適合作為反覆實驗的直接輸入格式
 
-專案把這些問題拆成兩層處理：
+本工具將上述問題拆成兩層：
 
-- 預覽層：先看大致有哪些資料、欄位與 coverage
-- 執行層：依條件直接拼資料，並把執行結果寫入 report
+- 預覽層：查看 coverage、schema 與欄位資訊
+- 執行層：依條件直接拼資料並輸出結果
 
 ## 核心能力
 
 ### 1. Dataset Builder
 
-`Dataset Builder` 會根據：
+`Dataset Builder` 是主資料拼貼流程，根據以下條件動態產出資料集：
 
 - `market`
 - `symbol`
@@ -102,30 +48,34 @@ python build_menu.py
 - `interval`
 - date range
 
-動態推導 Binance Vision 的候選 URL，然後完成以下工作：
+執行內容包括：
 
-1. 遠端探測
-2. 檔案下載
-3. zip 轉 parquet 快取
-4. 多來源時間對齊
-5. 合併輸出 parquet
-6. 寫出 `report.json`
+1. 推導候選 URL
+2. 探測遠端檔案
+3. 下載原始 zip
+4. 轉成 parquet 快取
+5. 多來源時間對齊
+6. 合併輸出最終寬表
+7. 寫出 `report.json`
 
-這個流程不依賴 `catalog.db.files` 才能運作，資料拼貼可在建立coverage前完成。
+這條流程可直接執行，不需要先建立完整 coverage。
 
 ### 2. Table Paster
 
-`Table Paster` 建立在已對齊好的 parquet 寬表上，負責把欄位運算固定成可重現的公式流程。
+`Table Paster` 建立在已完成對齊的 parquet 寬表上，負責將欄位運算固定成可重現的公式流程。
 
-這一層提供：
+主要功能包括：
 
 - 公式加欄
 - 批次套用模板
 - 新欄位預覽
-- 輸出完整 parquet 或僅輸出新欄位
-- 公式與 recipe 一併保存
+- 輸出完整 parquet
+- 僅輸出新增欄位
+- 保存 formulas、recipe 與 report
 
-### 3. metadata 瀏覽
+這一層的定位是研究資料表上的特徵工程工具。
+
+### 3. Metadata 瀏覽模組
 
 UI 內另外保留三個偏向可觀察性的模組：
 
@@ -135,17 +85,17 @@ UI 內另外保留三個偏向可觀察性的模組：
 
 這些頁面用來快速了解：
 
-- 某個 dataset 是否有對應 interval
+- 某個 dataset 是否存在對應 interval
 - coverage 大致範圍
-- 欄位名稱、型別與時間鍵
+- 欄位名稱、型別與時間鍵資訊
 
-## 二維運算模型
+## 資料運算模型
 
-這個專案的運算核心是一張已對齊的寬表。這張表建立之後，可以在同一個資料平面上同時進行時間序列運算與 cross-sectional 運算。
+本工具的運算核心是一張已完成時間對齊的寬表。這張表建立後，可在同一個資料平面上同時進行時間序列運算與 cross-sectional 運算。
 
 ### 縱向運算
 
-縱向運算沿著時間軸處理單一欄位，對應的常見函數包括：
+縱向運算沿時間軸處理單一欄位，常見函數包括：
 
 - `LAG`
 - `DIFF`
@@ -162,13 +112,13 @@ UI 內另外保留三個偏向可觀察性的模組：
 適合處理：
 
 - 單欄位報酬率
-- rolling 波動
+- rolling 波動估計
 - 平滑訊號
 - 缺值補齊
 
 ### 橫向運算
 
-橫向運算發生在同一個 timestamp 的多欄位之間，對應的常見函數包括：
+橫向運算發生在同一個 timestamp 下的多欄位之間，常見函數包括：
 
 - `ROW_SUM`
 - `ROW_MEAN`
@@ -198,112 +148,188 @@ UI 內另外保留三個偏向可觀察性的模組：
 - `XS_PCTRANK`
 - `SOFTMAX_WEIGHT`
 
-這一層讓同列正規化、排序與權重分配可以直接在寬表中完成。
+適合處理：
+
+- 同列正規化
+- 同列排序
+- 權重分配
+- cross-sectional signal construction
 
 ## 公式系統
 
-公式系統的目標是把研究常用的欄位運算固定成一個安全、可追蹤、可重複使用的介面。
+公式系統的目標是將研究常用的欄位運算固定成安全、可追蹤、可重複使用的介面。
 
 主要特性包括：
 
 - 公式先經過 AST 檢查
 - 禁止任意 Python 執行
-- 編譯結果是 Polars Expr
+- 編譯結果為 Polars Expr
 - 支援欄位依賴解析與自動排序
-- 支援 `COL("name")` 與 `COLS("regex")`
+- 支援 `COL("name")`
+- 支援 `COLS("regex")`
 
-這使得公式可以像工作表一樣逐層堆疊，但仍保留向量化執行的效率與可控性。
+這使公式可以像工作表一樣逐層堆疊，同時保留向量化執行效率與可控性。
 
-詳細函數表詳見 `FORMULA_TABLE.md`。
+完整函數表見 `FORMULA_TABLE.md`。
 
-## 輸出與可追溯性
+## 系統流程
 
-每次資料拼貼都會輸出以下產物：
+整體流程可概括為：
 
-- `data/outputs/datasets/<name>/<name>.parquet`
-- `data/outputs/datasets/<name>/<name>.report.json`
-- `data/outputs/datasets/<name>/<name>.recipe.json`
+`Binance Vision ZIP -> URL probing -> download -> parquet cache -> align/merge -> wide table -> formula engine -> outputs/report`
 
-`Table Paster` 另外會在輸出資料夾保留：
+更細的流程如下：
 
-- `formulas.tsv`
-- `recipe.json`
-- `report.json`
+1. 依照輸入條件推導遠端候選 URL
+2. 探測檔案存在性
+3. 下載原始資料
+4. 建立 parquet 快取
+5. 對多來源資料做時間對齊
+6. 合併成最終寬表
+7. 輸出 parquet、recipe 與 report
+8. 在寬表上進一步做公式加欄
 
-報告內容會區分：
+## 如何啟動
 
-- 成功下載數
-- `404`
-- 網路錯誤
-- 解析錯誤
-- 最終欄位
-- row count
-- 每個 selection 的摘要
+### 1. 安裝依賴
 
-這一層讓資料缺漏、上游不可用與解析異常不會混在同一個失敗訊號裡。
+```bash
+python -m pip install -r requirements.txt
+````
 
-## 設計取捨
+### 2. 啟動 UI
 
-### coverage 與實際拼貼分離
+```bash
+python run_ui.py
+```
 
-專案原本偏向先完成 coverage，再開始資料組裝。這在網路穩定時可行，但實務上會被大量 HEAD 探測拖慢，也會讓資料拼貼過度依賴 metadata 是否先準備完成。
+預設位址：
 
-目前的做法是把 coverage 定位為預覽資訊，而把實際資料拼貼改成執行期直接推導 URL、直接下載、直接寫 report。這樣可以先完成真正需要的資料表，再回頭檢查缺漏原因。
+* `http://127.0.0.1:8511`
 
-### parquet 作為中介層
+也可直接使用 Streamlit：
 
-原始 zip 第一次下載後會轉成 parquet 快取。這個設計讓：
+```bash
+python -m streamlit run ui/app.py
+```
 
-- 同一批來源反覆實驗時不需要重抓
-- 對齊與合併能在更穩定的格式上完成
-- 後續公式運算可直接建立在 parquet 上
+## 建議的首次使用流程
 
-### schema 保留為輔助資訊
+若目標是直接產出資料集，可直接進入 `Recipe Composer -> Dataset Builder`。
 
-`schema.db` 對欄位選取與時間鍵推斷很有幫助，但實際拼貼流程已可在 schema 不完整時採用保守推斷，因此不再是主流程的硬前置。
+建議先使用一組穩定來源驗證流程：
 
-## 系統結構
+* `market`: `futures_um`
+* `symbol`: `BTCUSDT`
+* `dataset`: `klines`
+* `interval`: `1h` 或 `15m`
+* `cadence`: `daily`
+
+完成一次資料拼貼後，再進入 `Table Paster` 進行欄位運算。
+
+## 何時需要先建 metadata
+
+若需要完整的下拉選單、coverage 預覽與 schema 資訊，可先執行：
+
+```bash
+python build_menu.py
+```
+
+此流程主要服務：
+
+* `Data Menu`
+* `Coverage Matrix`
+* `Schema Dictionary`
+
+這是 metadata 建置流程，不屬於資料拼貼主流程的必要前置。
+
+## 輸出內容
+
+每次資料拼貼會輸出以下產物：
+
+* `data/outputs/datasets/<name>/<name>.parquet`
+* `data/outputs/datasets/<name>/<name>.report.json`
+* `data/outputs/datasets/<name>/<name>.recipe.json`
+
+`Table Paster` 另外會保留：
+
+* `formulas.tsv`
+* `recipe.json`
+* `report.json`
+
+報告內容包含：
+
+* 成功下載數
+* `404`
+* 網路錯誤
+* 解析錯誤
+* 最終欄位
+* row count
+* 每個 selection 的摘要
+
+這一層可保留資料缺漏與執行異常的完整紀錄，方便追蹤與除錯。
+
+## 設計原則
+
+### Coverage 與資料拼貼分離
+
+coverage 被定位為預覽資訊。資料拼貼被定位為獨立執行流程。這樣可先完成真正需要的研究資料表，再檢查 coverage 與缺漏原因。
+
+### Parquet 作為中介快取層
+
+原始 zip 第一次下載後會轉成 parquet 快取。這使同一批來源在反覆實驗時不需要重抓，對齊與合併也能建立在更穩定的格式上。
+
+### Schema 作為輔助資訊
+
+`schema.db` 對欄位選取與時間鍵推斷有幫助。主流程在 schema 不完整時仍可採用保守推斷，因此 schema 被保留為輔助資訊層。
+
+## 專案結構
 
 ### `src/cache/`
 
-- `raw_cache.py`
-  - 規劃遠端 URL
-  - 探測檔案存在性
-  - 下載原始資料
-  - 建立 parquet 快取與 manifest
+* `raw_cache.py`
+
+  * 規劃遠端 URL
+  * 探測檔案存在性
+  * 下載原始資料
+  * 建立 parquet 快取與 manifest
 
 ### `src/composer/`
 
-- `interactive_builder.py`
-  - 讀取快取
-  - 多來源對齊
-  - 主時間軸合併
-  - 補值
-  - parquet 與 report 輸出
+* `interactive_builder.py`
+
+  * 讀取快取
+  * 多來源對齊
+  * 主時間軸合併
+  * 補值
+  * parquet 與 report 輸出
 
 ### `src/features/`
 
-- `formula_engine.py`
-  - 公式 AST 安全檢查
-  - 欄位依賴排序
-  - Polars Expr 編譯
-  - 縱向、橫向與 cross-sectional 函數實作
+* `formula_engine.py`
+
+  * 公式 AST 安全檢查
+  * 欄位依賴排序
+  * Polars Expr 編譯
+  * 縱向、橫向與 cross-sectional 函數實作
 
 ### `ui/`
 
-- `app.py`
-  - 主介面
-- `table_paster.py`
-  - 公式加欄、預覽與輸出介面
+* `app.py`
+
+  * 主介面
+* `table_paster.py`
+
+  * 公式加欄、預覽與輸出介面
 
 ### `src/catalog/` / `src/schema/`
 
 這兩個模組主要支援 metadata、coverage 與 schema 瀏覽。
 
-
 ## 相關文件
 
-- `FORMULA_TABLE.md`：公式系統完整參考
-- `QUICKSTART.md`：導向本 README
-- `USAGE.md`：導向本 README
-- `ARCHITECTURE.md`：導向本 README
+* `FORMULA_TABLE.md`：公式系統完整參考
+* `QUICKSTART.md`：快速啟動說明
+* `USAGE.md`：使用方式說明
+* `ARCHITECTURE.md`：系統結構說明
+
