@@ -111,7 +111,7 @@ python build_menu.py
 5. 合併輸出 parquet
 6. 寫出 `report.json`
 
-這條流程目前已不再依賴 `catalog.db.files` 才能運作，資料拼貼可以直接依執行條件完成。
+這個流程不依賴 `catalog.db.files` 才能運作，資料拼貼可在建立coverage前完成。
 
 ### 2. Table Paster
 
