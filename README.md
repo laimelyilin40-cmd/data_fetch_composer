@@ -1,4 +1,3 @@
-````markdown
 # Binance Vision 研究資料處理工具
 
 本工具為個人量化研究流程開發，目的是將 Binance Vision 上分散的原始檔案整理為可直接分析的二維時序寬表。
@@ -195,8 +194,7 @@ UI 內另外保留三個偏向可觀察性的模組：
 
 ```bash
 python -m pip install -r requirements.txt
-````
-
+```
 ### 2. 啟動 UI
 
 ```bash
